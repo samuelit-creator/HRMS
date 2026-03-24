@@ -1,0 +1,88 @@
+{% extends "myapp/base.html" %}
+{% block title %}Survey Results{% endblock %}
+{% block page_title %}Survey Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a href="{% url 'pulse_survey_list' %}" class="btn btn-link link-secondary p-0 mb-3 text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i> Back to Surveys
+        </a>
+        <h4 class="fw-bold mb-1">{{ survey.Title }}</h4>
+        <p class="text-muted small">{{ survey.Description }}</p>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-4 mb-5">
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 bg-primary text-white p-4 text-center">
+                <h1 class="display-4 fw-bold mb-0">{{ total }}</h1>
+                <p class="mb-0 opacity-75">Total Responses</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 bg-success text-white p-4 text-center">
+                <h1 class="display-4 fw-bold mb-0">{{ participation_rate }}%</h1>
+                <p class="mb-0 opacity-75">Participation Rate</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Per-Question Analytics -->
+    {% for data in question_data %}
+    <div class="card shadow-sm border-0 mb-5 overflow-hidden">
+        <div class="card-header bg-light-subtle py-3 border-bottom">
+            <h6 class="fw-bold mb-0 text-primary">Question {{ forloop.counter }}: {{ data.question.QuestionText }}</h6>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <div class="col-lg-5 text-center d-flex flex-column justify-content-center border-end">
+                    <h2 class="display-5 fw-bold mb-0 text-info">{{ data.avg_rating }}</h2>
+                    <p class="text-muted small">Average Rating</p>
+                </div>
+                <div class="col-lg-7">
+                    <h6 class="small fw-bold mb-3 text-muted uppercase">Distribution</h6>
+                    {% for item in data.distribution %}
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="x-small fw-medium">Rating {{ item.rate }}</span>
+                            <span class="x-small text-muted">{{ item.count }} votes ({{ item.percent }}%)</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar {% if item.rate == 5 %}bg-success{% elif item.rate == 4 %}bg-primary{% elif item.rate == 3 %}bg-info{% elif item.rate == 2 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                 role="progressbar" style="width: {{ item.percent }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Feedback for this question -->
+            <div class="mt-4 pt-4 border-top">
+                <h6 class="small fw-bold mb-3 text-muted">Specific Feedback</h6>
+                <div class="row g-3">
+                    {% for ans in data.answers %}
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 h-100">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="badge bg-white text-dark border small">Rated: {{ ans.Rating }}</span>
+                                <span class="x-small text-muted">{{ ans.CreatedAt|date:"d M" }}</span>
+                            </div>
+                            <p class="mb-0 small text-dark fst-italic">"{{ ans.Comment }}"</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 py-3 text-center text-muted small">No specific comments for this question.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .x-small { font-size: 0.75rem; }
+</style>
+{% endblock %}

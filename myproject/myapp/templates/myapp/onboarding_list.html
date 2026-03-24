@@ -1,0 +1,128 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+<style>
+    .onboard-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .page-header h1 {
+        font-weight: 800;
+        color: #0f172a;
+    }
+    .request-table {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    .table { margin-bottom: 0; }
+    .table th {
+        background: #f8fafc;
+        padding: 1.2rem 1.5rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        border: none;
+    }
+    .table td {
+        padding: 1.5rem;
+        vertical-align: middle;
+        color: #475569;
+        border-top: 1px solid #f1f5f9;
+    }
+    .status-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 99px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .status-PENDING { background: #fef9c3; color: #a16207; }
+    .status-ACCEPTED { background: #dcfce7; color: #166534; }
+    .status-REJECTED { background: #fee2e2; color: #991b1b; }
+    
+    .btn-view {
+        background: #f1f5f9;
+        color: #475569;
+        border-radius: 10px;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .btn-view:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+</style>
+
+<div class="onboard-container">
+    <div class="page-header">
+        <h1>Onboarding Requests</h1>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="{% url 'toggle_candidate_registration' %}" class="btn {% if show_candidate_register %}btn-outline-danger{% else %}btn-outline-success{% endif %} btn-sm">
+                {% if show_candidate_register %}
+                    <i class="bi bi-eye-slash"></i> Hide Register Link
+                {% else %}
+                    <i class="bi bi-eye"></i> Show Register Link
+                {% endif %}
+            </a>
+            <div class="badge bg-primary rounded-pill px-3 py-2">{{ requests|length }} Submissions</div>
+        </div>
+    </div>
+
+    <div class="request-table">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Candidate Name</th>
+                        <th>Email</th>
+                        <th>Applied On</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-slate-900">{{ req.FullName }}</div>
+                            <div class="small text-muted">{{ req.ContactNo }}</div>
+                        </td>
+                        <td>{{ req.Email }}</td>
+                        <td>{{ req.CreatedAt|date:"d M Y" }}</td>
+                        <td>
+                            <span class="status-badge status-{{ req.Status }}">
+                                {{ req.Status }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'onboarding_detail' pk=req.id %}" class="btn-view">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-people" style="font-size: 3rem; color: #e2e8f0;"></i>
+                            <p class="mt-3 text-muted">No onboarding requests found.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

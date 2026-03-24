@@ -1,0 +1,106 @@
+{% extends "myapp/base.html" %}
+{% block title %}Expense Approvals{% endblock %}
+{% block page_title %}Expense Approvals{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h4 class="mb-0 fw-bold">Pending Approvals</h4>
+        <p class="text-muted small mb-0">Review and process expense claims at your level (<span class="text-primary fw-semibold">{{ role }}</span>).</p>
+    </div>
+
+    <div class="row">
+        {% for claim in pending_claims %}
+        <div class="col-xl-6 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="avatar-circle">
+                                {{ claim.Employee.EmployeeName|slice:":1" }}
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark">{{ claim.Employee.EmployeeName }}</h6>
+                                <p class="text-muted small mb-0">Code: <span class="fw-medium text-dark">{{ claim.Employee.EmployeeCode }}</span></p>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <h5 class="mb-0 fw-bold text-primary">₹ {{ claim.Amount }}</h5>
+                            <span class="badge bg-light text-dark border fw-normal">{{ claim.ExpenseType }}</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-light rounded-3 p-3 mb-4">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="text-muted x-small text-uppercase fw-bold">Date of Expense</label>
+                                <div class="small fw-medium">{{ claim.ExpenseDate|date:"d M, Y" }}</div>
+                            </div>
+                            <div class="col-6 text-end">
+                                <label class="text-muted x-small text-uppercase fw-bold">Current Status</label>
+                                <div class="x-small">
+                                    {% if claim.Status == 'PENDING_MANAGER' %}
+                                        <span class="text-warning fw-bold">Pending Manager</span>
+                                    {% elif claim.Status == 'PENDING_FINANCE' %}
+                                        <span class="text-info fw-bold">Pending Finance</span>
+                                    {% elif claim.Status == 'PENDING_ADMIN' %}
+                                        <span class="text-primary fw-bold">Pending Admin</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="text-muted x-small text-uppercase fw-bold">Description</label>
+                                <div class="small">{{ claim.Description }}</div>
+                            </div>
+                            {% if claim.Receipt %}
+                            <div class="col-12">
+                                <a href="{% url 'expense_receipt' claim.id %}" target="_blank" class="btn btn-sm btn-outline-primary w-100 mt-2">
+                                    <i class="bi bi-file-earmark-image me-1"></i>View Receipt
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <form action="{% url 'expense_approve' claim.id 'APPROVE' %}" method="POST" class="approval-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Your Remarks</label>
+                            <textarea name="remarks" class="form-control form-control-sm" rows="2" placeholder="Add optional remarks..."></textarea>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" name="action" value="APPROVE" class="btn btn-success btn-sm px-4">
+                                <i class="bi bi-check-circle me-1"></i>Approve
+                            </button>
+                            <button formaction="{% url 'expense_approve' claim.id 'REJECT' %}" type="submit" name="action" value="REJECT" class="btn btn-outline-danger btn-sm px-4">
+                                <i class="bi bi-x-circle me-1"></i>Reject
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted">
+                <i class="bi bi-check-all display-1 mb-3 d-block opacity-10"></i>
+                <p class="fs-5">All caught up!</p>
+                <p>No pending expense claims for your approval.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .x-small { font-size: 0.65rem; }
+    .card { border-radius: 16px; border: 1px solid rgba(0,0,0,0.05); }
+    .avatar-circle {
+        width: 42px; height: 42px; background-color: #f1f5f9; color: var(--primary);
+        display: flex; align-items: center; justify-content: center; border-radius: 50%;
+        font-weight: 700; border: 2px solid #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    .btn-success { background-color: #22c55e; border-color: #22c55e; }
+    .btn-success:hover { background-color: #16a34a; border-color: #16a34a; }
+</style>
+{% endblock %}

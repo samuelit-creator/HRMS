@@ -1,0 +1,57 @@
+{% extends 'myapp/base.html' %}
+
+{% block content %}
+    <h1>Leave Request Details</h1>
+
+    <table>
+        <tr>
+            <th>Employee Code:</th>
+            <td>{{ leave_request.EmployeeCode }}</td>
+        </tr>
+        <tr>
+            <th>From Date:</th>
+            <td>{{ leave_request.FromDate }}</td>
+        </tr>
+        <tr>
+            <th>To Date:</th>
+            <td>{{ leave_request.ToDate }}</td>
+        </tr>
+        <tr>
+            <th>Reason:</th>
+            <td>{{ leave_request.Reason }}</td>
+        </tr>
+        <tr>
+            <th>Leave Type:</th>
+            <td>{{ leave_request.LeaveType }}</td>
+        </tr>
+        <tr>
+            <th>Status:</th>
+            <td>{{ leave_request.Status }}</td>
+        </tr>
+        <tr>
+            <th>Approved By:</th>
+            <td>
+                {% if leave_request.ApprovedBy %}
+                    {{ leave_request.ApprovedBy }}
+                {% else %}
+                    Not Approved Yet
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <br>
+
+    {% if can_approve %}
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" name="status" value="approve">Approve</button>
+    <button type="submit" name="status" value="reject">Reject</button>
+</form>
+{% else %}
+<p>You cannot approve/reject your own leave request.</p>
+{% endif %}
+
+
+{% endblock %}
+

@@ -1,0 +1,14 @@
+<div class="org-chart">
+    <div class="org-node root drop-zone" data-code="ROOT">
+        <div class="card">Organization</div>
+
+        {% if tree %}
+        <div class="children">
+            {% for node in tree %}
+                {% include "myapp/org_node.html" with node=node depth=1 %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+</div>

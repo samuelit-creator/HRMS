@@ -1,0 +1,110 @@
+{% extends "myapp/base.html" %}
+{% block title %}Asset History{% endblock %}
+{% block page_title %}History: {{ asset.AssetTag }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a href="{% url 'asset_list' %}" class="btn btn-link link-secondary p-0 mb-3 text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i> Back to Inventory
+        </a>
+        <h4 class="fw-bold mb-1">{{ asset.Name }} <span class="text-primary">#{{ asset.AssetTag }}</span></h4>
+        <p class="text-muted small">Tracking the full lifecycle and allocation history of this asset.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-uppercase x-small text-muted mb-4 ls-1">Asset Profile</h6>
+                    
+                    <div class="mb-4">
+                        <label class="text-muted x-small d-block mb-1">Status</label>
+                        {% if asset.Status == 'AVAILABLE' %}
+                            <span class="badge bg-success text-white">Available</span>
+                        {% elif asset.Status == 'ALLOCATED' %}
+                            <span class="badge bg-info text-white">Allocated</span>
+                        {% else %}
+                            <span class="badge bg-secondary text-white">{{ asset.Status }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted x-small d-block mb-1">Serial Number</label>
+                        <div class="fw-medium">{{ asset.SerialNumber|default:"N/A" }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted x-small d-block mb-1">Model / Specs</label>
+                        <div class="fw-medium">{{ asset.Model|default:"Standard" }}</div>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="text-muted x-small d-block mb-1">Purchase Date</label>
+                        <div class="fw-medium">{{ asset.PurchaseDate|date:"d M, Y"|default:"Unknown" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="p-4 border-bottom bg-light bg-opacity-50">
+                        <h6 class="mb-0 fw-bold">Allocation Timeline</h6>
+                    </div>
+                    
+                    <div class="p-4">
+                        <ul class="list-unstyled timeline-list mb-0">
+                            {% for record in history %}
+                            <li class="timeline-item pb-4 {% if forloop.last %}last{% endif %}">
+                                <div class="timeline-marker bg-primary"></div>
+                                <div class="timeline-content ps-4">
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="fw-bold mb-1">{{ record.Employee.EmployeeName }}</h6>
+                                        <span class="text-muted x-small fw-medium">{{ record.AllocatedDate|date:"M d, Y" }}</span>
+                                    </div>
+                                    <div class="x-small text-muted mb-2">Code: {{ record.Employee.EmployeeCode }}</div>
+                                    
+                                    <div class="small bg-light p-2 rounded-2">
+                                        <div class="row g-2">
+                                            <div class="col-sm-6">
+                                                <span class="text-muted x-small d-block">Held Until</span>
+                                                <span>{{ record.ReturnedDate|date:"M d, Y"|default:"Present" }}</span>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <span class="text-muted x-small d-block">Condition on Return</span>
+                                                <span class="{% if record.ConditionOnReturn == 'Poor' or record.ConditionOnReturn == 'Damaged' %}text-danger{% endif %}">
+                                                    {{ record.ConditionOnReturn|default:"-" }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            {% empty %}
+                            <li class="text-center py-4">
+                                <span class="text-muted">No allocation history recorded for this asset.</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .x-small { font-size: 0.7rem; }
+    .ls-1 { letter-spacing: 0.1em; }
+    .timeline-list { position: relative; }
+    .timeline-item { position: relative; border-left: 2px solid #e2e8f0; margin-left: 10px; }
+    .timeline-item.last { border-left-color: transparent; }
+    .timeline-marker {
+        width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff;
+        position: absolute; left: -7px; top: 5px; box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+    .timeline-content { position: relative; top: -2px; }
+</style>
+{% endblock %}

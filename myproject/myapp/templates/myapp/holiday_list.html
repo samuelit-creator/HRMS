@@ -1,0 +1,63 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<!-- Bootstrap CSS (add once in base.html if not already) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container mt-4">
+
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold">📅 Holiday & Week-Off Calendar</h3>
+    <a href="{% url 'add_holiday' %}" class="btn btn-primary">
+      ➕ Add Holiday / Week-Off
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Day Type</th>
+            <th>Holiday Name</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for h in holidays %}
+          <tr>
+            <td>{{ h.0 }}</td>
+
+            <td>
+              {% if h.1 == "Holiday" %}
+                <span class="badge bg-success">Holiday</span>
+              {% elif h.1 == "Week-Off" %}
+                <span class="badge bg-warning text-dark">Week-Off</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ h.1 }}</span>
+              {% endif %}
+            </td>
+
+            <td>{{ h.2|default:"-" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="text-center text-muted">
+              No holiday or week-off records found
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

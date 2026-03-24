@@ -1,0 +1,405 @@
+
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<style>
+:root {
+    --primary: #2563eb;
+    --secondary: #4f46e5;
+    --bg: #f4f6fb;
+    --card-bg: rgba(255,255,255,0.85);
+    --text-dark: #1f2937;
+    --text-light: #6b7280;
+}
+
+body {
+    background: var(--bg);
+}
+
+.hr-wrapper {
+    max-width: 1100px;
+    margin: 40px auto;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* ===== Profile Header ===== */
+.profile-top {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    padding: 35px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.avatar {
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 700;
+    text-transform: uppercase;
+    overflow: hidden;
+    border: 3px solid rgba(255,255,255,0.3);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.avatar:hover {
+    transform: scale(1.05);
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-main h2 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.profile-main p {
+    margin-top: 6px;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* ===== Tabs ===== */
+.tabs {
+    display: flex;
+    gap: 12px;
+    margin: 30px 0 20px;
+}
+
+.tab {
+    padding: 10px 18px;
+    border-radius: 8px;
+    background: #e5e7eb;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+    transition: 0.3s;
+}
+
+.tab.active {
+    background: var(--primary);
+    color: #fff;
+}
+
+/* ===== Cards ===== */
+.card {
+    background: var(--card-bg);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 18px 25px;
+    font-weight: 600;
+    background: #f9fafb;
+    border-bottom: 1px solid #eee;
+}
+
+.card-body {
+    padding: 25px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.item {
+    background: #f1f5f9;
+    padding: 14px;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+.item:hover {
+    background: #e0e7ff;
+}
+
+.item strong {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 4px;
+}
+
+.hidden {
+    display: none;
+}
+
+    .profile-actions {
+        padding: 20px 25px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        background-color: #fafafa;
+    }
+
+    .btn {
+        padding: 10px 18px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        text-decoration: none;
+    }
+
+    .btn-edit {
+        background-color: #1a73e8;
+        color: #ffffff;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 18px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-edit:hover {
+        background-color: #1558b0;
+        transform: rotate(30deg);
+    }
+
+    .btn-back {
+        background-color: #e0e0e0;
+        color: #333;
+    }
+
+    .btn-back:hover {
+        background-color: #cfcfcf;
+    }
+
+    .btn-deactivate {
+        background-color: #dc3545;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-deactivate:hover {
+        background-color: #c82333;
+        color: #ffffff;
+    }
+
+
+.empty {
+    padding: 25px;
+    font-style: italic;
+    color: var(--text-light);
+}
+
+/* ===== Responsive ===== */
+@media(max-width: 768px) {
+    .card-body {
+        grid-template-columns: 1fr;
+    }
+    .profile-top {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+</style>
+
+<div class="hr-wrapper">
+<div class="profile-actions">
+            
+<a href="/users/" class="btn btn-back">Back</a>
+
+
+            {% if request.session.allocate_position in "HR IT" and profile.emp_code != request.session.emp_code and is_active %}
+            <a href="{% url 'deactivate_user' emp_code=profile.emp_code|urlencode %}"
+               class="btn btn-deactivate" title="Deactivate Account"
+               onclick="return confirm('Are you sure you want to deactivate this account? This will remove all system credentials and access.')">
+               <i class="bi bi-person-x-fill"></i> Deactivate
+            </a>
+            {% endif %}
+            <a href="{% url 'edit_user_profile' emp_code=profile.emp_code|urlencode %}"
+               class="btn btn-edit" title="Edit Profile">
+                <i class="bi bi-gear-fill"></i>
+            </a>
+        </div>
+{% if profile %}
+    <!-- Profile Header -->
+    <div class="profile-top">
+        <div class="avatar" onclick="openFullPhoto()">
+            {% if profile.photo %}
+                <img src="data:image/jpeg;base64,{{ profile.photo }}" alt="{{ profile.name }}" id="profilePhoto">
+            {% else %}
+                {{ profile.name|slice:":1" }}
+            {% endif %}
+        </div>
+        <div class="profile-main">
+            <h2>{{ profile.name }}</h2>
+            <p>{{ profile.designation }} • {{ profile.department_name }}</p>
+            <p>{{ profile.employment_type }}</p>
+            {% if is_active %}
+            <span class="badge bg-success" style="font-size: 11px;">Active</span>
+            {% else %}
+            <span class="badge bg-danger" style="font-size: 11px;">Deactivated</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('official')">Official</div>
+        <div class="tab" onclick="showTab('personal')">Personal</div>
+        <div class="tab" onclick="showTab('bank')">Bank</div>
+    </div>
+
+    <!-- Official Info -->
+    <div class="card tab-content" id="official">
+        <div class="card-header">Official Information</div>
+        <div class="card-body">
+            <div class="item"><strong>Employee Code</strong>{{ profile.emp_code }}</div>
+            <div class="item"><strong>Department</strong>{{ profile.department_name }}</div>
+            <div class="item"><strong>Team</strong>{{ profile.team }}</div>
+            <div class="item"><strong>Location</strong>{{ profile.location }}</div>
+            <div class="item"><strong>Date of Joining</strong>{{ profile.doj|date:"d-m-Y" }}</div>
+            <div class="item"><strong>Email</strong>{{ profile.email }}</div>
+            <div class="item"><strong>Qualification</strong>{{ profile.qualification }}</div>
+            <div class="item"><strong>Total Experience</strong>{{ profile.total_experience }}</div>
+            <div class="item"><strong>Previous Organization</strong>{{ profile.prev_org }}</div>
+            <div class="item"><strong>AAPC Certification</strong>{{ profile.aapc_cert }}</div>
+            <div class="item"><strong>Credential Number</strong>{{ profile.credential_no }}</div>
+        </div>
+    </div>
+
+    <!-- Personal Info -->
+    <div class="card tab-content hidden" id="personal">
+        <div class="card-header">Personal Information</div>
+        <div class="card-body">
+            <div class="item"><strong>Gender</strong>{{ profile.gender }}</div>
+            <div class="item"><strong>Date of Birth</strong>{{ profile.dob|date:"d-m-Y" }}</div>
+            <div class="item"><strong>Father Name</strong>{{ profile.father_name }}</div>
+            <div class="item"><strong>Mother Name</strong>{{ profile.mother_name }}</div>
+            <div class="item"><strong>Marital Status</strong>{{ profile.marital_status }}</div>
+            <div class="item"><strong>Blood Group</strong>{{ profile.blood_group }}</div>
+            <div class="item"><strong>Place of Birth</strong>{{ profile.place_of_birth }}</div>
+            <div class="item"><strong>Contact</strong>{{ profile.contact_no }}</div>
+            <div class="item"><strong>Aadhaar</strong>****{{ profile.aadhaar_number|slice:"-4:" }}</div>
+            <div class="item"><strong>PAN Number</strong>{{ profile.pan_number }}</div>
+            <div class="item"><strong>UAN Number</strong>{{ profile.uan_number }}</div>
+            <div class="item"><strong>Emergency Contact</strong>{{ profile.emergency_contact }}</div>
+            <div class="item"><strong>Residential Address</strong>{{ profile.residential_address }}</div>
+            <div class="item"><strong>Permanent Address</strong>{{ profile.permanent_address }}</div>
+            <div class="item" style="grid-column: 1 / -1;"><strong>BGV Details</strong>{{ profile.bgv_details }}</div>
+        </div>
+    </div>
+
+    <!-- Bank Info -->
+    <div class="card tab-content hidden" id="bank">
+        <div class="card-header">Bank & Payroll</div>
+
+        {% if bank.bank_name %}
+        <div class="card-body">
+            <div class="item"><strong>Bank Name</strong>{{ bank.bank_name }}</div>
+            <div class="item"><strong>Account Number</strong>****{{ bank.account_number|slice:"-4:" }}</div>
+            <div class="item"><strong>IFSC Code</strong>{{ bank.ifsc_code }}</div>
+        </div>
+        {% else %}
+        <div class="empty">Bank details not added.</div>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <div class="card">
+        <div class="empty">Employee profile not found.</div>
+    </div>
+    {% endif %}
+
+<!-- Lightbox Overlay -->
+<div id="photoOverlay" class="photo-overlay" onclick="closeFullPhoto()">
+    <img id="fullPhoto" src="" alt="Full Profile Photo">
+</div>
+
+<style>
+    .photo-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        cursor: zoom-out;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .photo-overlay.active {
+        display: flex;
+        opacity: 1;
+    }
+    
+    .photo-overlay img {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 12px;
+        box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        transform: scale(0.9);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    .photo-overlay.active img {
+        transform: scale(1);
+    }
+</style>
+
+<script>
+function openFullPhoto() {
+    const photoImg = document.getElementById('profilePhoto');
+    if (photoImg) {
+        const overlay = document.getElementById('photoOverlay');
+        const fullImg = document.getElementById('fullPhoto');
+        fullImg.src = photoImg.src;
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeFullPhoto() {
+    const overlay = document.getElementById('photoOverlay');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+}
+</script>
+
+</div>
+
+<script>
+function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+
+    document.getElementById(tabId).classList.remove('hidden');
+    event.target.classList.add('active');
+}
+</script>
+
+{% endblock %}

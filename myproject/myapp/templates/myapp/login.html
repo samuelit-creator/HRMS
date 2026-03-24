@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedLearn Vision | Secure Login</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+    <style>
+        .glass {
+            backdrop-filter: blur(18px);
+            background: rgba(255, 255, 255, 0.85);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-[#0F172A] overflow-hidden">
+    <div id="particles-js" class="absolute w-full h-full -z-10"></div>
+    <!-- Animated Gradient Blobs -->
+    <div class="absolute -top-32 -left-32 w-[500px] h-[500px] bg-indigo-600/40 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-blue-500/30 rounded-full blur-3xl"></div>
+
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen grid grid-cols-1 lg:grid-cols-2">
+
+        <!-- LEFT PANEL (Brand Section) -->
+        <div class="hidden lg:flex flex-col justify-center px-20 text-white">
+            <img
+                src="https://github.com/samuelit-creator/HRMS/blob/main/med%20white.png?raw=true"
+                alt="MedLearn Vision"
+                class="h-20 w-fit mb-10">
+
+            <h1 class="text-4xl font-bold leading-tight">
+                Empowering Healthcare <br>
+                Through Smart Learning
+            </h1>
+
+            <p class="mt-6 text-lg text-blue-100 max-w-md">
+                Secure employee access to MedLearn Vision’s digital healthcare ecosystem.
+            </p>
+
+            <div class="mt-12 space-y-4 text-sm text-blue-200">
+                <p>✔ Secure authentication</p>
+                <p>✔ Centralized employee access</p>
+                <p>✔ Trusted by healthcare professionals</p>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL (Login Section) -->
+        <div class="flex items-center justify-center px-6">
+            <div id="loginCard"
+                class="glass w-full max-w-md rounded-3xl shadow-2xl p-10 opacity-0">
+
+                <h2 class="text-3xl font-bold text-gray-800 text-center">
+                    Employee Login
+                </h2>
+                <p class="text-center text-gray-500 mt-2 mb-8">
+                    Sign in to continue
+                </p>
+
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">
+                            Employee Code
+                        </label>
+                        <input
+                            type="text"
+                            name="emp_code"
+                            required
+                            class="mt-1 w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">
+                            Password
+                        </label>
+                        <input
+                            type="password"
+                            name="password"
+                            required
+                            class="mt-1 w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold tracking-wide hover:scale-[1.02] transition transform duration-300 shadow-lg">
+                        Secure Login
+                    </button>
+
+                    {% if error %}
+                    <div id="errorBox"
+                        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm text-center">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+
+                    <div class="flex justify-between items-center text-sm mt-4">
+                        <a href="{% url 'forgot_password' %}" class="text-indigo-600 hover:underline">
+                            Forgot Password?
+                        </a>
+                        <span class="text-gray-400">Need help?</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script>
+  particlesJS('particles-js', {
+    particles: {
+      number: { value: 80 },
+      color: { value: ["#6366F1","#EC4899","#22D3EE"] },
+      shape: { type: "circle" },
+      opacity: { value: 0.6 },
+      size: { value: 3 },
+      line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.2, width: 1 },
+      move: { enable: true, speed: 1 }
+    },
+    interactivity: { detect_on: "canvas", events: { onhover: { enable: true, mode: "grab" } } },
+    retina_detect: true
+  });
+</script>
+
+    <!-- GSAP Animations -->
+    <script>
+        gsap.fromTo("#loginCard",
+            { opacity: 0, y: 60 },
+            {
+                opacity: 1,
+                y: 0,
+                duration: 1.1,
+                ease: "power4.out"
+            }
+        );
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,245 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<style>
+    /* ===== BASE ===== */
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: #f4f7fb;
+    }
+
+    .page-wrapper {
+        max-width: 1200px;
+        margin: auto;
+        padding: 30px;
+    }
+
+    /* ===== CARD ===== */
+    .card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+
+    .card h2,
+    .card h3 {
+        margin-bottom: 20px;
+        color: #1f2937;
+    }
+
+    /* ===== FORM ===== */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 14px;
+        transition: 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    textarea {
+        resize: none;
+        height: 90px;
+    }
+
+    /* ===== BUTTON ===== */
+    .btn-primary {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #fff;
+        border: none;
+        padding: 12px 26px;
+        border-radius: 10px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    /* ===== MESSAGE ===== */
+    .success-msg {
+        background: #dcfce7;
+        color: #166534;
+        padding: 12px 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-weight: 500;
+    }
+
+    /* ===== TABLE ===== */
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    thead {
+        background: #f1f5f9;
+    }
+
+    th,
+    td {
+        padding: 12px 14px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+        font-size: 13px;
+        text-transform: uppercase;
+        color: #475569;
+    }
+
+    tbody tr:hover {
+        background: #f9fafb;
+    }
+
+    /* ===== ACTIONS ===== */
+    .action-btn {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .edit-btn {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .delete-btn {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+</style>
+
+<div class="page-wrapper">
+
+    <!-- ===== FORM CARD ===== -->
+    <div class="card">
+        <h2>Manual Punch Entry</h2>
+
+        {% if msg %}
+        <div class="success-msg">{{ msg }}</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Employee Code</label>
+                    <input type="text" name="emp_code" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Punch Date</label>
+                    <input type="date" name="punch_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Punch Time</label>
+                    <input type="time" name="punch_time" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Punch Type</label>
+                    <select name="punch_type" required>
+                        <option value="IN">IN</option>
+                        <option value="OUT">OUT</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Remarks</label>
+                    <textarea name="remarks"></textarea>
+                </div>
+            </div>
+
+            <br>
+            <button type="submit" class="btn-primary">Add Punch</button>
+        </form>
+    </div>
+
+    <!-- ===== TABLE CARD ===== -->
+    <div class="card">
+        <h3>Existing Punch Entries</h3>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Emp Code</th>
+                        <th>Employee Name</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Type</th>
+                        <th>Remarks</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in punches %}
+                    <tr>
+                        <td>{{ p.id }}</td>
+                        <td>{{ p.emp_code }}</td>
+                        <td>{{ p.emp_name }}</td>
+                        <td>{{ p.date }}</td>
+                        <td>{{ p.time }}</td>
+                        <td>{{ p.type }}</td>
+                        <td>{{ p.remarks }}</td>
+                        <td>
+                            <a href="{% url 'edit_manual_punch' p.id %}" class="action-btn edit-btn">Edit</a>
+                        </td>
+                        <td>
+                            <a href="{% url 'delete_manual_punch' p.id %}" class="action-btn delete-btn"
+                                onclick="return confirm('Delete this punch?');">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

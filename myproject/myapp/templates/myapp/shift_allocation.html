@@ -1,0 +1,509 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}Shift Allocation{% endblock %}
+{% block page_title %}Shift Allocation{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-teal: #2ec4b6;
+        --secondary-teal: #20a396;
+        --light-bg: #f8fafc;
+        --dark-text: #1e293b;
+        --muted-text: #64748b;
+        --border-color: #e2e8f0;
+        --card-shadow: 0 10px 25px rgba(0, 161, 157, 0.05);
+    }
+
+    .allocation-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Form Card Styles */
+    .premium-card {
+        background: white;
+        border-radius: 16px;
+        border: none;
+        box-shadow: var(--card-shadow);
+        /* overflow: hidden;  <-- Removed to allow dropdown to show outside the card */
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .premium-card:hover {
+        box-shadow: 0 15px 35px rgba(0, 161, 157, 0.1);
+    }
+
+    .card-header-gradient {
+        background: linear-gradient(135deg, var(--primary-teal), var(--secondary-teal));
+        padding: 1.25rem 1.5rem;
+        color: white;
+        font-weight: 600;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-body-custom {
+        padding: 1.5rem;
+    }
+
+    /* Custom Dropdown Styling */
+    .dropdown-button-custom {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        width: 100%;
+        text-align: left;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .dropdown-button-custom:hover,
+    .dropdown-button-custom:focus {
+        border-color: var(--primary-teal);
+        box-shadow: 0 0 0 3px rgba(46, 196, 182, 0.1);
+    }
+
+    .dropdown-menu-custom {
+        width: 100%;
+        max-height: 400px;
+        overflow-y: auto;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        margin-top: 0.5rem !important;
+    }
+
+    .selection-controls {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .selection-link {
+        color: var(--primary-teal);
+        text-decoration: none;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .selection-link:hover {
+        text-decoration: underline;
+    }
+
+    .emp-item {
+        padding: 0.5rem;
+        border-radius: 6px;
+        transition: background 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .emp-item:hover {
+        background: #f0fdfa;
+    }
+
+    .emp-item input[type="checkbox"] {
+        accent-color: var(--primary-teal);
+        width: 18px;
+        height: 18px;
+    }
+
+    /* Table Styles */
+    .table-custom {
+        margin-bottom: 0;
+    }
+
+    .table-custom thead th {
+        background: #f8fafc;
+        color: var(--muted-text);
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .table-custom tbody td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+        color: var(--dark-text);
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+
+    .employee-info-cell {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .emp-name {
+        font-weight: 600;
+        color: var(--dark-text);
+    }
+
+    .emp-code {
+        font-size: 0.75rem;
+        color: var(--muted-text);
+    }
+
+    .badge-shift {
+        background: rgba(46, 196, 182, 0.1);
+        color: var(--secondary-teal);
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .btn-delete-custom {
+        color: #ef4444;
+        background: #fef2f2;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+    }
+
+    .btn-delete-custom:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    /* Input Styling */
+    .form-label-custom {
+        font-weight: 600;
+        color: var(--dark-text);
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 0.9rem;
+    }
+
+    .form-control-custom,
+    .form-select-custom {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.25s ease;
+    }
+
+    .form-control-custom:focus,
+    .form-select-custom:focus {
+        border-color: var(--primary-teal);
+        box-shadow: 0 0 0 3px rgba(46, 196, 182, 0.1);
+        outline: none;
+    }
+
+    .btn-save-custom {
+        background: var(--primary-teal);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 1.8rem;
+    }
+
+    .btn-save-custom:hover {
+        background: var(--secondary-teal);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(46, 196, 182, 0.3);
+    }
+
+    .search-box-container {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+    .search-box-container i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted-text);
+    }
+
+    .search-input-custom {
+        padding-left: 35px !important;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.4s ease-out forwards;
+    }
+</style>
+
+<div class="allocation-container">
+
+    <!-- Allocation Form -->
+    <div class="premium-card fade-in" style="position: relative; z-index: 10;">
+        <div class="card-header-gradient">
+            <span><i class="fas fa-calendar-plus me-2"></i>New Shift Allocation</span>
+        </div>
+        <div class="card-body-custom">
+            <form method="post" id="allocationForm">
+                {% csrf_token %}
+                <div class="row g-4">
+                    <!-- Employees Selector -->
+                    <div class="col-lg-4">
+                        <label class="form-label-custom">Select Employees</label>
+                        <div class="dropdown">
+                            <button class="dropdown-button-custom dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false" id="empDropdownBtn">
+                                <span id="empSelectedText">Choose Employees</span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-custom">
+                                <div class="search-box-container">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control form-control-sm search-input-custom"
+                                        id="empSearch" placeholder="Search employee..." onkeyup="filterEmployees()">
+                                </div>
+                                <div class="selection-controls">
+                                    <span class="selection-link" onclick="selectAllEmployees()">Select All</span>
+                                    <span class="selection-link text-danger" onclick="clearAllEmployees()">Clear</span>
+                                </div>
+                                <div class="emp-list-scroll mt-2" id="empList">
+                                    {% for e in employees %}
+                                    <div class="emp-item">
+                                        <input class="emp-check" type="checkbox" value="{{ e.0 }}" id="emp_{{ e.0 }}"
+                                            data-name="{{ e.1 }}">
+                                        <label class="form-check-label cursor-pointer" for="emp_{{ e.0 }}">
+                                            {{ e.1 }} <span class="text-muted ms-1">({{ e.0 }})</span>
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div id="empHiddenInputs"></div>
+                    </div>
+
+                    <!-- Shift Duration -->
+                    <div class="col-lg-3">
+                        <label class="form-label-custom">Shift Duration</label>
+                        <select name="shift" class="form-select form-select-custom" required>
+                            <option value="" disabled selected>Select Shift</option>
+                            {% for s in shifts %}
+                            <option value="{{ s.0 }}">{{ s.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- From Date -->
+                    <div class="col-lg-2">
+                        <label class="form-label-custom">Start Date</label>
+                        <input type="date" name="from_date" class="form-control form-control-custom" required>
+                    </div>
+
+                    <!-- To Date -->
+                    <div class="col-lg-2">
+                        <label class="form-label-custom">End Date (Optional)</label>
+                        <input type="date" name="to_date" class="form-control form-control-custom">
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="col-lg-1">
+                        <button type="submit" class="btn-save-custom">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Allocation List -->
+    <div class="premium-card fade-in" style="animation-delay: 0.1s;">
+        <div class="card-header-gradient" style="background: var(--dark-text);">
+            <span><i class="fas fa-list-ul me-2"></i>Active Allocations</span>
+            <div class="d-flex align-items-center gap-3">
+                <button type="button" class="btn btn-sm btn-success d-flex align-items-center gap-1"
+                    onclick="exportToExcel()" style="border-radius: 8px; font-weight: 600;">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+                <span class="badge bg-light text-dark">{{ allocations|length }} Total</span>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-custom" id="shiftTable">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">ID</th>
+                        <th style="width: 25%;">Employee</th>
+                        <th style="width: 20%;">Team</th>
+                        <th style="width: 15%;">Shift</th>
+                        <th style="width: 15%;">From</th>
+                        <th style="width: 15%;">To</th>
+                        <th style="width: 10%;" class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in allocations %}
+                    <tr>
+                        <td>
+                            <div class="employee-info-cell">
+                                <span class="emp-code">{{ a.1 }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="employee-info-cell">
+                                <span class="emp-name">{{ a.2 }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-muted" style="font-size: 0.85rem;">{{ a.3|default:"—" }}</span>
+                        </td>
+                        <td>
+                            <span class="badge-shift"><i class="far fa-clock me-1"></i>{{ a.4 }}</span>
+                        </td>
+                        <td>{{ a.5 }}</td>
+                        <td>{{ a.6|default:"—" }}</td>
+                        <td class="text-center">
+                            <a href="/shift-allocation/delete/{{ a.0 }}/" class="btn-delete-custom"
+                                title="Delete Allocation"
+                                onclick="return confirm('Are you sure you want to delete this allocation?')">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <div class="mb-2"><i class="fas fa-calendar-times fa-3x opacity-25"></i></div>
+                            <p>No active shift allocations found.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateEmployeeSelection() {
+        const checked = document.querySelectorAll('.emp-check:checked');
+        const textSpan = document.getElementById('empSelectedText');
+        const hiddenDiv = document.getElementById('empHiddenInputs');
+        const dropdownBtn = document.getElementById('empDropdownBtn');
+
+        hiddenDiv.innerHTML = '';
+
+        if (checked.length === 0) {
+            textSpan.innerText = 'Choose Employees';
+            dropdownBtn.classList.remove('border-teal');
+            return;
+        }
+
+        dropdownBtn.classList.add('border-teal');
+        let names = [];
+
+        checked.forEach(cb => {
+            names.push(cb.dataset.name);
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'employee';
+            input.value = cb.value;
+            hiddenDiv.appendChild(input);
+        });
+
+        if (checked.length <= 2) {
+            textSpan.innerText = names.join(', ');
+        } else {
+            textSpan.innerText = checked.length + ' employees selected';
+        }
+    }
+
+    function filterEmployees() {
+        const query = document.getElementById('empSearch').value.toLowerCase();
+        const items = document.querySelectorAll('.emp-item');
+
+        items.forEach(item => {
+            const label = item.querySelector('label').innerText.toLowerCase();
+            if (label.includes(query)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    function selectAllEmployees() {
+        document.querySelectorAll('.emp-check').forEach(cb => {
+            const item = cb.closest('.emp-item');
+            if (item.style.display !== 'none') {
+                cb.checked = true;
+            }
+        });
+        updateEmployeeSelection();
+    }
+
+    function clearAllEmployees() {
+        document.querySelectorAll('.emp-check').forEach(cb => cb.checked = false);
+        updateEmployeeSelection();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.emp-check').forEach(cb => {
+            cb.addEventListener('change', updateEmployeeSelection);
+        });
+
+        // Prevent dropdown from closing when clicking inside
+        document.querySelector('.dropdown-menu-custom').addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    });
+</script>
+
+<!-- SheetJS for Excel Export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+<script>
+    function exportToExcel() {
+        const table = document.getElementById("shiftTable");
+
+        // Clone table to remove action column before export
+        const tempTable = table.cloneNode(true);
+        const rows = tempTable.querySelectorAll('tr');
+        rows.forEach(row => {
+            if (row.cells.length > 6) {
+                row.deleteCell(-1); // Remove the Action column
+            }
+        });
+
+        const wb = XLSX.utils.table_to_book(tempTable, { sheet: "Shift Allocations" });
+        XLSX.writeFile(wb, "Shift_Allocations.xlsx");
+    }
+</script>
+{% endblock %}

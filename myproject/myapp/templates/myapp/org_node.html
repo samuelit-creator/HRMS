@@ -1,0 +1,34 @@
+{% if depth <= 8 %}
+<div class="org-node child drop-zone" draggable="true" data-code="{{ node.code }}">
+    <div class="card">
+        <strong>{{ node.name }}</strong><br>
+        <small>{{ node.role }}</small>
+    </div>
+
+    {% if node.children %}
+    <div class="children">
+        {% for child in node.children %}
+            {% include "myapp/org_node.html" with node=child depth=depth|add:1 %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+<script>
+function createOrgNodeFromEmployee(empDiv) {
+    const empCode = empDiv.dataset.code;
+    const empName = empDiv.innerText.trim();
+
+    const node = document.createElement("div");
+    node.className = "org-node drop-zone";
+    node.dataset.code = empCode;
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerText = empName;
+
+    node.appendChild(card);
+    return node;
+}
+</script>
+

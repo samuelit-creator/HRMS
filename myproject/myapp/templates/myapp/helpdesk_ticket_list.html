@@ -1,0 +1,480 @@
+{% extends "myapp/base.html" %}
+{% block title %}Support Dashboard{% endblock %}
+{% block page_title %}Helpdesk Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper py-4 py-lg-5 px-3 px-lg-5">
+    <!-- Dashboard Header -->
+    <div class="row mb-5 align-items-center animate-fade-in">
+        <div class="col-lg-7 mb-4 mb-lg-0">
+            <h1 class="display-5 fw-900 text-dark mb-2">Support <span class="text-primary-gradient">Dashboard</span></h1>
+            <p class="text-secondary fw-500 mb-0">
+                <i class="bi bi-calendar3 me-2"></i> {% now "l, d F Y" %} • <span class="opacity-75">Real-time ticket monitoring enabled</span>
+            </p>
+        </div>
+        <div class="col-lg-5 text-lg-end">
+            <div class="d-flex flex-wrap gap-3 justify-content-lg-end">
+                <a href="{% url 'helpdesk_ticket_create' %}" class="btn btn-primary-premium">
+                    <i class="bi bi-plus-lg me-2"></i>New Support Request
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="row g-4 mb-5 animate-slide-up">
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card card-open">
+                <div class="metric-icon"><i class="bi bi-envelope-open-fill"></i></div>
+                <div class="metric-info">
+                    <span class="metric-label">Open Tickets</span>
+                    <h2 class="metric-value">{{ stats.open }}</h2>
+                </div>
+                <div class="metric-trend text-danger">Pending Response</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card card-progress">
+                <div class="metric-icon"><i class="bi bi-gear-wide-connected"></i></div>
+                <div class="metric-info">
+                    <span class="metric-label">In Progress</span>
+                    <h2 class="metric-value">{{ stats.progress }}</h2>
+                </div>
+                <div class="metric-trend text-primary">Actively Processing</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card card-overdue">
+                <div class="metric-icon"><i class="bi bi-alarm-fill"></i></div>
+                <div class="metric-info">
+                    <span class="metric-label">Overdue / Breach</span>
+                    <h2 class="metric-value">{{ stats.overdue }}</h2>
+                </div>
+                <div class="metric-trend text-dark">Action Required</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card card-resolved">
+                <div class="metric-icon"><i class="bi bi-check-all"></i></div>
+                <div class="metric-info">
+                    <span class="metric-label">Resolved (Total)</span>
+                    <h2 class="metric-value">{{ stats.resolved }}</h2>
+                </div>
+                <div class="metric-trend text-success">Completed Tasks</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="glass-card mb-4 p-3 animate-slide-up" style="animation-delay: 0.1s;">
+        <div class="row g-3 align-items-center">
+            <div class="col-lg-4">
+                <div class="search-box-premium">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="Search ticket ID or subject..." class="form-control-premium">
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                    <button class="filter-chip active">All Tickets</button>
+                    <button class="filter-chip">Open</button>
+                    <button class="filter-chip">Urgent</button>
+                    <button class="filter-chip">My Assignments</button>
+                    <div class="vr mx-2 opacity-10"></div>
+                    <button class="btn btn-icon-glass"><i class="bi bi-funnel"></i></button>
+                    <button class="btn btn-icon-glass"><i class="bi bi-download"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Table -->
+    <div class="glass-card overflow-hidden animate-slide-up" style="animation-delay: 0.2s;">
+        <div class="table-responsive">
+            <table class="table table-hover-premium align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Ticket ID</th>
+                        <th>Status</th>
+                        <th>Subject & Category</th>
+                        <th>Priority</th>
+                        <th>SLA Status</th>
+                        <th class="pe-4 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr class="ticket-row-premium">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="status-marker Priority-{{ ticket.Priority }}"></div>
+                                <span class="fw-800 text-dark">#{{ ticket.id }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if ticket.Status == 'OPEN' %}
+                                <div class="badge-status-premium status-open"><span class="pulse"></span>Open</div>
+                            {% elif ticket.Status == 'IN_PROGRESS' %}
+                                <div class="badge-status-premium status-progress">In Progress</div>
+                            {% elif ticket.Status == 'RESOLVED' %}
+                                <div class="badge-status-premium status-resolved">Resolved</div>
+                            {% else %}
+                                <div class="badge-status-premium status-closed">Closed</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="subject-cell">
+                                <div class="fw-700 text-dark-blue truncate-2 mb-1">{{ ticket.Subject }}</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="x-small text-secondary fw-600">{{ ticket.Category }}</span>
+                                    <span class="x-small text-muted">•</span>
+                                    <span class="x-small text-muted">{{ ticket.Employee.EmployeeName }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="priority-label Priority-{{ ticket.Priority }}">
+                                <i class="bi {% if ticket.Priority == 'Urgent' %}bi-lightning-fill{% else %}bi-flag-fill{% endif %}"></i>
+                                {{ ticket.Priority }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if ticket.Status == 'OPEN' or ticket.Status == 'IN_PROGRESS' %}
+                                <div class="sla-display {% if ticket.IsSLAExceeded %}text-danger{% else %}text-success{% endif %}">
+                                    <div class="fw-800 x-small mb-1">
+                                        {% if ticket.IsSLAExceeded %}BREACHED{% else %}TARGET OK{% endif %}
+                                    </div>
+                                    <div class="x-small opacity-75 fw-600">
+                                        {{ ticket.DueDate|date:"d M, H:i" }}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="sla-display {% if ticket.IsSLAExceeded %}text-danger{% else %}text-muted{% endif %} opacity-75">
+                                    <i class="bi {% if ticket.IsSLAExceeded %}bi-x-circle{% else %}bi-check-circle{% endif %} h6"></i>
+                                    <span class="x-small fw-700 ms-1">{% if ticket.IsSLAExceeded %}Breached{% else %}Met{% endif %}</span>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4 text-end">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="{% url 'helpdesk_ticket_detail' ticket.id %}" class="btn-circular btn-view" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if is_resolver %}
+                                <a href="{% url 'helpdesk_ticket_update' ticket.id %}" class="btn-circular btn-process" title="Process Ticket">
+                                    <i class="bi bi-gear-wide-connected"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="empty-state py-5">
+                                <i class="bi bi-rocket-takeoff display-1 text-primary-gradient opacity-25 mb-4 d-block"></i>
+                                <h4 class="fw-800 text-dark">No Tickets in Orbit</h4>
+                                <p class="text-secondary mb-4">All systems clear. No active support requests found.</p>
+                                <a href="{% url 'helpdesk_ticket_create' %}" class="btn btn-primary-premium">Launch New Ticket</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+
+    :root {
+        --primary: #4F46E5;
+        --primary-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+        --secondary: #64748B;
+        --success: #10B981;
+        --warning: #F59E0B;
+        --danger: #EF4444;
+        --dark-blue: #1E293B;
+        --glass: rgba(255, 255, 255, 0.85);
+        --glass-border: rgba(255, 255, 255, 0.4);
+    }
+
+    body {
+        background: #fdfdfd;
+        font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+        color: var(--dark-blue);
+    }
+
+    .fw-900 { font-weight: 900; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+    .ls-1 { letter-spacing: 0.05em; }
+    .x-small { font-size: 0.72rem; }
+
+    .text-primary-gradient {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Metric Cards */
+    .metric-card {
+        background: white;
+        padding: 24px;
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+        border: 1px solid #f1f5f9;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+    }
+    .metric-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .card-open .metric-icon { background: #fee2e2; color: #ef4444; }
+    .card-progress .metric-icon { background: #e0e7ff; color: #4f46e5; }
+    .card-overdue .metric-icon { background: #fef3c7; color: #f59e0b; }
+    .card-resolved .metric-icon { background: #dcfce7; color: #10b981; }
+
+    .metric-value { font-family: 'Inter'; font-weight: 800; margin-bottom: 2px; }
+    .metric-label { font-size: 0.75rem; font-weight: 700; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.02em; }
+    .metric-trend { font-size: 0.7rem; font-weight: 700; opacity: 0.8; }
+
+    /* Glass Effects */
+    .glass-card {
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Search & Filters */
+    .search-box-premium {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .search-box-premium i {
+        position: absolute;
+        left: 16px;
+        color: var(--secondary);
+        font-size: 1.1rem;
+    }
+    .form-control-premium {
+        width: 100%;
+        padding: 12px 16px 12px 48px;
+        border-radius: 16px;
+        border: 1.5px solid #f1f5f9;
+        background: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    .form-control-premium:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        outline: none;
+    }
+
+    .filter-chip {
+        padding: 8px 18px;
+        border-radius: 100px;
+        border: 1.5px solid #f1f5f9;
+        background: white;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--secondary);
+        transition: all 0.2s ease;
+    }
+    .filter-chip.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    .filter-chip:hover:not(.active) {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    /* Table Styling */
+    .table-hover-premium thead th {
+        background: #f8fafc;
+        padding: 20px 16px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--secondary);
+        border: none;
+    }
+
+    .ticket-row-premium {
+        border-bottom: 1px solid #f1f5f9;
+        transition: all 0.2s ease;
+    }
+    .ticket-row-premium:hover {
+        background: rgba(79, 70, 229, 0.01) !important;
+    }
+
+    .status-marker {
+        width: 4px;
+        height: 24px;
+        border-radius: 4px;
+    }
+    .Priority-Urgent { background: var(--danger); }
+    .Priority-High { background: var(--warning); }
+    .Priority-Medium { background: var(--primary); }
+    .Priority-Low { background: var(--secondary); }
+
+    .text-dark-blue { color: #0f172a; }
+    .truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Badge Premium */
+    .badge-status-premium {
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: fit-content;
+    }
+    .status-open { background: #fee2e2; color: #b91c1c; }
+    .status-progress { background: #e0e7ff; color: #4338ca; }
+    .status-resolved { background: #dcfce7; color: #15803d; }
+    .status-closed { background: #f1f5f9; color: #475569; }
+
+    .pulse {
+        width: 8px;
+        height: 8px;
+        background: #ef4444;
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    .priority-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .priority-label.Priority-Urgent { color: var(--danger); }
+    .priority-label.Priority-High { color: var(--warning); }
+    .priority-label.Priority-Medium { color: var(--primary); }
+    .priority-label.Priority-Low { color: var(--secondary); }
+
+    /* Action Buttons */
+    .btn-circular {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1.5px solid #f1f5f9;
+        background: white;
+        color: var(--secondary);
+    }
+    .btn-circular:hover {
+        transform: scale(1.1);
+        border-color: var(--primary);
+        color: var(--primary);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-primary-premium {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 16px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+    }
+    .btn-primary-premium:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(79, 70, 229, 0.35);
+        color: white;
+    }
+
+    .btn-icon-glass {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: white;
+        border: 1.5px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--secondary);
+        transition: all 0.2s ease;
+    }
+    .btn-icon-glass:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    /* Animations */
+    .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+    .animate-slide-up { animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Responsive */
+    @media (max-width: 991.98px) {
+        .dashboard-wrapper { padding-top: 2rem !important; }
+        .table-hover-premium thead { display: none; }
+        .ticket-row-premium {
+            display: block;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid #f1f5f9;
+        }
+        .ticket-row-premium td {
+            display: block;
+            padding: 8px 0 !important;
+            border: none;
+        }
+        .ticket-row-premium .pe-4 { border-top: 1px solid #f1f5f9; padding-top: 15px !important; margin-top: 10px; }
+    }
+</style>
+{% endblock %}

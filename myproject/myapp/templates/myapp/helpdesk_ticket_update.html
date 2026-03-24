@@ -1,0 +1,354 @@
+{% extends "myapp/base.html" %}
+{% block title %}Update Ticket #{{ ticket.id }}{% endblock %}
+{% block page_title %}Process Support Ticket{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5 px-lg-5">
+    <div class="row g-4">
+        <!-- Sidebar: Ticket Context -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100 animate-slide-up">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="ticket-id-large">#{{ ticket.id }}</div>
+                    <div>
+                        <div class="x-small text-muted text-uppercase fw-bold ls-1">Ticket ID</div>
+                        <div class="fw-800 text-dark">Processing Request</div>
+                    </div>
+                </div>
+
+                <div class="metadata-section mb-4">
+                    <div class="meta-item mb-3">
+                        <label>Current Status</label>
+                        <div class="mt-1">
+                            {% if ticket.Status == 'OPEN' %}
+                                <span class="badge-status status-open">Open</span>
+                            {% elif ticket.Status == 'IN_PROGRESS' %}
+                                <span class="badge-status status-progress">In Progress</span>
+                            {% elif ticket.Status == 'RESOLVED' %}
+                                <span class="badge-status status-resolved">Resolved</span>
+                            {% else %}
+                                <span class="badge-status status-closed">Closed</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="meta-item mb-3">
+                        <label>Priority</label>
+                        <div class="mt-1">
+                            {% if ticket.Priority == 'Urgent' %}
+                                <span class="badge-priority priority-urgent">Urgent</span>
+                            {% elif ticket.Priority == 'High' %}
+                                <span class="badge-priority priority-high">High</span>
+                            {% elif ticket.Priority == 'Medium' %}
+                                <span class="badge-priority priority-medium">Medium</span>
+                            {% else %}
+                                <span class="badge-priority priority-low">Low</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="meta-item mb-3">
+                        <label>Category</label>
+                        <div class="fw-700 text-dark mt-1">{{ ticket.Category }} Support</div>
+                    </div>
+                </div>
+
+                <div class="divider mb-4"></div>
+
+                <div class="metadata-section mb-4">
+                    <div class="meta-item mb-3">
+                        <label>Raised By</label>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <div class="avatar-sm">
+                                {{ ticket.Employee.EmployeeName|slice:":1" }}
+                            </div>
+                            <div>
+                                <div class="fw-700 text-dark small">{{ ticket.Employee.EmployeeName }}</div>
+                                <div class="x-small text-secondary">{{ ticket.CreatedAt|date:"d M Y, H:i" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider mb-4"></div>
+
+                <!-- SLA Tracking Section -->
+                <div class="sla-card p-3 rounded-4 bg-white shadow-sm border border-light">
+                    <label class="x-small text-muted text-uppercase fw-bold ls-1 d-block mb-3">SLA Tracking</label>
+                    {% if ticket.IsSLAExceeded %}
+                        <div class="d-flex align-items-center gap-2 text-danger mb-2">
+                            <i class="bi bi-exclamation-octagon-fill h5 mb-0"></i>
+                            <span class="fw-800">SLA BREACHED</span>
+                        </div>
+                        <div class="alert-item text-secondary mb-1">
+                            <i class="bi bi-clock me-2"></i>Target: {{ ticket.DueDate|date:"d M, H:i" }}
+                        </div>
+                    {% else %}
+                        <div class="d-flex align-items-center gap-2 text-success mb-2">
+                            <i class="bi bi-shield-check h5 mb-0"></i>
+                            <span class="fw-800">WITHIN SLA</span>
+                        </div>
+                        <div class="alert-item text-secondary">
+                            <i class="bi bi-hourglass-split me-2"></i>Deadline: {{ ticket.DueDate|date:"d M, H:i" }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content: Ticket Content & Update Form -->
+        <div class="col-lg-8">
+            <div class="glass-card h-100 overflow-hidden animate-slide-up" style="animation-delay: 0.1s;">
+                <div class="p-4 p-lg-5">
+                    <!-- Ticket Content Preview -->
+                    <div class="mb-5">
+                        <div class="x-small text-secondary text-uppercase fw-bold ls-1 mb-2 opacity-50">Subject</div>
+                        <h3 class="fw-800 text-dark mb-4">{{ ticket.Subject }}</h3>
+                        
+                        <div class="description-box p-4 rounded-4 bg-light mb-4">
+                            <div class="x-small text-muted text-uppercase fw-bold ls-1 mb-2">Original Request</div>
+                            {{ ticket.Description|linebreaks }}
+                        </div>
+                    </div>
+
+                    <!-- Update Form -->
+                    <form method="post" class="animate-slide-up" style="animation-delay: 0.2s;">
+                        {% csrf_token %}
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-group-modern">
+                                    <label class="form-label-premium">Update Status</label>
+                                    <div class="input-group-premium">
+                                        <span class="input-icon"><i class="bi bi-activity"></i></span>
+                                        <select name="status" class="form-select-premium">
+                                            <option value="OPEN" {% if ticket.Status == 'OPEN' %}selected{% endif %}>Open</option>
+                                            <option value="IN_PROGRESS" {% if ticket.Status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+                                            <option value="RESOLVED" {% if ticket.Status == 'RESOLVED' %}selected{% endif %}>Resolved</option>
+                                            <option value="CLOSED" {% if ticket.Status == 'CLOSED' %}selected{% endif %}>Closed</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-modern">
+                                    <label class="form-label-premium">Change Specialist</label>
+                                    <div class="input-group-premium">
+                                        <span class="input-icon"><i class="bi bi-person-gear"></i></span>
+                                        <select name="assign_to" class="form-select-premium">
+                                            <option value="">Unassigned</option>
+                                            {% for res in resolvers %}
+                                            <option value="{{ res.EmployeeCode }}" {% if ticket.AssignedTo.EmployeeCode == res.EmployeeCode %}selected{% endif %}>{{ res.EmployeeName }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group-modern">
+                                    <label class="form-label-premium">Resolution / Specialist Notes</label>
+                                    <textarea name="resolution" class="form-control-premium text-area-premium" rows="5" placeholder="Document the resolution steps or add internal notes here...">{{ ticket.Resolution|default:"" }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="mt-5 pt-4 border-top d-flex flex-column flex-sm-row gap-3 justify-content-end align-items-center">
+                            <a href="{% url 'helpdesk_ticket_list' %}" class="btn btn-secondary-glass px-4 order-2 order-sm-1">
+                                Back to Desk
+                            </a>
+                            <button type="submit" class="btn btn-primary-glass px-5 py-3 order-1 order-sm-2">
+                                <i class="bi bi-check2-circle me-2"></i>Update Support Ticket
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #4F46E5;
+        --secondary: #64748B;
+        --success: #10B981;
+        --danger: #EF4444;
+        --glass: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.3);
+        --input-bg: rgba(248, 250, 252, 0.7);
+    }
+
+    body {
+        background: #f8fafc;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+    .ls-1 { letter-spacing: 0.05em; }
+    .x-small { font-size: 0.7rem; }
+
+    .glass-card {
+        background: var(--glass);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
+
+    .ticket-id-large {
+        background: #1e293b;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    .metadata-section label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .divider {
+        height: 1px;
+        background: rgba(0, 0, 0, 0.05);
+        width: 100%;
+    }
+
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        background: var(--primary);
+        color: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .alert-item {
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    /* Status & Priority Badges */
+    .badge-status, .badge-priority {
+        padding: 6px 14px;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .status-open { background: #fee2e2; color: #b91c1c; }
+    .status-progress { background: #e0e7ff; color: #4338ca; }
+    .status-resolved { background: #dcfce7; color: #15803d; }
+    .status-closed { background: #f1f5f9; color: #475569; }
+
+    .priority-urgent { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .priority-high { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .priority-medium { background: rgba(79, 70, 229, 0.1); color: #4f46e5; }
+    .priority-low { background: rgba(100, 116, 139, 0.1); color: #64748b; }
+
+    .description-box {
+        background: #f1f5f9;
+        line-height: 1.6;
+        color: #334155;
+        font-size: 0.95rem;
+    }
+
+    .form-label-premium {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .input-group-premium {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 16px;
+        color: var(--secondary);
+        opacity: 0.6;
+        pointer-events: none;
+        z-index: 5;
+    }
+
+    .form-control-premium, .form-select-premium {
+        width: 100%;
+        padding: 12px 16px 12px 46px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        background: var(--input-bg);
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #1e293b;
+        transition: all 0.3s ease;
+    }
+
+    .text-area-premium {
+        padding-left: 16px !important;
+    }
+
+    .form-control-premium:focus, .form-select-premium:focus {
+        background: white;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        outline: none;
+    }
+
+    .btn-primary-glass {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 14px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);
+    }
+    .btn-primary-glass:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+        color: white;
+    }
+
+    .btn-secondary-glass {
+        background: white;
+        color: var(--secondary);
+        border: 1.5px solid #e2e8f0;
+        padding: 12px 24px;
+        border-radius: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-secondary-glass:hover {
+        background: #f8fafc;
+        transform: translateY(-2px);
+    }
+
+    /* Animations */
+    .animate-slide-up {
+        animation: slideUp 0.8s ease-out forwards;
+        opacity: 0;
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}

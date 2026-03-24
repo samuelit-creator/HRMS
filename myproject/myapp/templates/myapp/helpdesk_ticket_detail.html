@@ -1,0 +1,311 @@
+{% extends "myapp/base.html" %}
+{% block title %}Ticket #{{ ticket.id }} Details{% endblock %}
+{% block page_title %}Support Ticket Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5 px-lg-5">
+    <div class="row g-4">
+        <!-- Sidebar: Ticket Metadata -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100 animate-slide-up">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="ticket-id-large">#{{ ticket.id }}</div>
+                    <div>
+                        <div class="x-small text-muted text-uppercase fw-bold ls-1">Ticket ID</div>
+                        <div class="fw-800 text-dark">Support Request</div>
+                    </div>
+                </div>
+
+                <div class="metadata-section mb-4">
+                    <div class="meta-item mb-3">
+                        <label>Status</label>
+                        <div class="mt-1">
+                            {% if ticket.Status == 'OPEN' %}
+                                <span class="badge-status status-open">Open</span>
+                            {% elif ticket.Status == 'IN_PROGRESS' %}
+                                <span class="badge-status status-progress">In Progress</span>
+                            {% elif ticket.Status == 'RESOLVED' %}
+                                <span class="badge-status status-resolved">Resolved</span>
+                            {% else %}
+                                <span class="badge-status status-closed">Closed</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="meta-item mb-3">
+                        <label>Priority</label>
+                        <div class="mt-1">
+                            {% if ticket.Priority == 'Urgent' %}
+                                <span class="badge-priority priority-urgent">Urgent</span>
+                            {% elif ticket.Priority == 'High' %}
+                                <span class="badge-priority priority-high">High</span>
+                            {% elif ticket.Priority == 'Medium' %}
+                                <span class="badge-priority priority-medium">Medium</span>
+                            {% else %}
+                                <span class="badge-priority priority-low">Low</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="meta-item mb-3">
+                        <label>Category</label>
+                        <div class="fw-700 text-dark mt-1">{{ ticket.Category }} Support</div>
+                    </div>
+                </div>
+
+                <div class="divider mb-4"></div>
+
+                <div class="metadata-section mb-4">
+                    <div class="meta-item mb-3">
+                        <label>Raised By</label>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <div class="avatar-sm">
+                                {{ ticket.Employee.EmployeeName|slice:":1" }}
+                            </div>
+                            <div>
+                                <div class="fw-700 text-dark small">{{ ticket.Employee.EmployeeName }}</div>
+                                <div class="x-small text-secondary">{{ ticket.CreatedAt|date:"d M Y, H:i" }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meta-item mb-3">
+                        <label>Assigned Specialist</label>
+                        <div class="mt-1">
+                            {% if ticket.AssignedTo %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-person-check-fill text-primary"></i>
+                                    <span class="fw-600 text-dark small">{{ ticket.AssignedTo.EmployeeName }}</span>
+                                </div>
+                            {% else %}
+                                <div class="text-secondary small italic px-3 py-2 bg-light rounded-3 d-inline-block">
+                                    <i class="bi bi-person-dash me-1"></i>Waiting for assignment
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider mb-4"></div>
+
+                <!-- SLA Information Section -->
+                <div class="sla-card p-3 rounded-4 bg-white shadow-sm border border-light">
+                    <label class="x-small text-muted text-uppercase fw-bold ls-1 d-block mb-3">SLA Tracking</label>
+                    {% if ticket.IsSLAExceeded %}
+                        <div class="d-flex align-items-center gap-2 text-danger mb-2">
+                            <i class="bi bi-exclamation-octagon-fill h5 mb-0"></i>
+                            <span class="fw-800">SLA BREACHED</span>
+                        </div>
+                        <div class="alert-item text-secondary mb-1">
+                            <i class="bi bi-clock me-2"></i>Target: {{ ticket.DueDate|date:"d M, H:i" }}
+                        </div>
+                        {% if ticket.ResolvedAt %}
+                            <div class="alert-item text-secondary">
+                                <i class="bi bi-check2-circle me-2"></i>Actual: {{ ticket.ResolvedAt|date:"d M, H:i" }}
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="d-flex align-items-center gap-2 text-success mb-2">
+                            <i class="bi bi-shield-check h5 mb-0"></i>
+                            <span class="fw-800">WITHIN SLA</span>
+                        </div>
+                        {% if ticket.Status == 'OPEN' or ticket.Status == 'IN_PROGRESS' %}
+                            <div class="alert-item text-secondary">
+                                <i class="bi bi-hourglass-split me-2"></i>Deadline: {{ ticket.DueDate|date:"d M, H:i" }}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content: Subject, Description, Resolution -->
+        <div class="col-lg-8">
+            <div class="glass-card h-100 overflow-hidden animate-slide-up" style="animation-delay: 0.1s;">
+                <div class="p-4 p-lg-5">
+                    <div class="mb-5">
+                        <div class="x-small text-primary text-uppercase fw-bold ls-1 mb-2">Subject</div>
+                        <h2 class="fw-800 text-dark mb-4">{{ ticket.Subject }}</h2>
+                        
+                        <div class="x-small text-muted text-uppercase fw-bold ls-1 mb-2">Original Request</div>
+                        <div class="description-box p-4 rounded-4 bg-light">
+                            {{ ticket.Description|linebreaks }}
+                        </div>
+                    </div>
+
+                    {% if ticket.Resolution %}
+                    <div class="mb-5 animate-slide-up" style="animation-delay: 0.2s;">
+                        <div class="x-small text-success text-uppercase fw-bold ls-1 mb-2">Resolution & Feedback</div>
+                        <div class="resolution-box p-4 rounded-4 shadow-sm border-0 border-start border-4 border-success bg-success-light text-dark">
+                            <i class="bi bi-quote opacity-25 float-end display-6 mt-n3"></i>
+                            {{ ticket.Resolution|linebreaks }}
+                        </div>
+                        {% if ticket.ResolvedAt %}
+                        <div class="text-end mt-2">
+                            <span class="x-small text-muted italic">Resolved on {{ ticket.ResolvedAt|date:"d M Y, H:i" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-auto pt-5 border-top d-flex flex-wrap gap-3 align-items-center justify-content-between">
+                        <a href="{% url 'helpdesk_ticket_list' %}" class="btn btn-secondary-glass px-4">
+                            <i class="bi bi-chevron-left me-2"></i>Back to Helpdesk
+                        </a>
+                        {% if is_resolver %}
+                        <a href="{% url 'helpdesk_ticket_update' ticket.id %}" class="btn btn-primary-glass px-4">
+                            <i class="bi bi-gear-fill me-2"></i>Update Ticket
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #4F46E5;
+        --secondary: #64748B;
+        --success: #10B981;
+        --danger: #EF4444;
+        --glass: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.3);
+    }
+
+    body {
+        background: #f8fafc;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+    .ls-1 { letter-spacing: 0.05em; }
+    .x-small { font-size: 0.7rem; }
+
+    .glass-card {
+        background: var(--glass);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
+
+    .ticket-id-large {
+        background: #1e293b;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    .metadata-section label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .divider {
+        height: 1px;
+        background: rgba(0, 0, 0, 0.05);
+        width: 100%;
+    }
+
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        background: var(--primary);
+        color: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .alert-item {
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    /* Status & Priority Badges */
+    .badge-status, .badge-priority {
+        padding: 6px 14px;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .status-open { background: #fee2e2; color: #b91c1c; }
+    .status-progress { background: #e0e7ff; color: #4338ca; }
+    .status-resolved { background: #dcfce7; color: #15803d; }
+    .status-closed { background: #f1f5f9; color: #475569; }
+
+    .priority-urgent { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .priority-high { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .priority-medium { background: rgba(79, 70, 229, 0.1); color: #4f46e5; }
+    .priority-low { background: rgba(100, 116, 139, 0.1); color: #64748b; }
+
+    .description-box {
+        background: #f8fafc;
+        line-height: 1.6;
+        color: #334155;
+        font-size: 0.95rem;
+    }
+
+    .resolution-box {
+        line-height: 1.6;
+        color: #064e3b;
+        font-size: 0.95rem;
+        background-color: #f0fdf4 !important;
+    }
+
+    .btn-primary-glass {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 14px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);
+    }
+    .btn-primary-glass:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+        color: white;
+    }
+
+    .btn-secondary-glass {
+        background: white;
+        color: var(--secondary);
+        border: 1px solid #e2e8f0;
+        padding: 12px 24px;
+        border-radius: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-secondary-glass:hover {
+        background: #f8fafc;
+        transform: translateY(-2px);
+    }
+
+    /* Animations */
+    .animate-slide-up {
+        animation: slideUp 0.8s ease-out forwards;
+        opacity: 0;
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}

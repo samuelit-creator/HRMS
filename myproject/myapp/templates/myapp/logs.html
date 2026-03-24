@@ -1,0 +1,32 @@
+<h2>Live Punch Dashboard</h2>
+<p>Updated at: {{ now }}</p>
+
+<table border="1" cellpadding="6">
+    <tr>
+        <th>Employee Code</th>
+        <th>Employee Name</th>
+        <th>Punch Time</th>
+        <th>Direction</th>
+        <th>Device</th>
+    </tr>
+
+    {% for p in punches %}
+    <tr>
+        <td>{{ p.user_id }}</td>
+        <td>{{ p.employee_name }}</td>
+        <td>{{ p.time }}</td>
+        <td>{{ p.direction }}</td>
+        <td>{{ p.device }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">No live punches</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<script>
+setTimeout(() => {
+    location.reload();
+}, 10000);  // auto-refresh every 10 sec
+</script>

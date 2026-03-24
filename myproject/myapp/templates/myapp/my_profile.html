@@ -1,0 +1,790 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<!-- Custom Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --primary-h: 224;
+    --primary-s: 71%;
+    --primary-l: 45%;
+    
+    --accent-h: 260;
+    --accent-s: 85%;
+    --accent-l: 55%;
+
+    --primary: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
+    --primary-soft: hsl(var(--primary-h), var(--primary-s), 96%);
+    --accent: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+    
+    --bg-surface: #ffffff;
+    --bg-body: #f8fafc;
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --text-light: #94a3b8;
+    
+    --glass-white: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    
+    --radius-xl: 32px;
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.profile-container-v2 {
+    max-width: 1300px;
+    margin: 0 auto;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-main);
+    padding: 1.5rem;
+    position: relative;
+}
+
+/* --- Hero Banner --- */
+.hero-banner {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    height: 320px;
+    border-radius: var(--radius-xl);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 0 4rem;
+    box-shadow: var(--shadow-lg);
+    z-index: 1;
+}
+
+.hero-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(79, 70, 229, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.hero-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.5;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    color: white;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hero-text h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin: 0;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    background: linear-gradient(to right, #ffffff, #94a3b8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-text p {
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: #94a3b8;
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* --- Large Overlapping Avatar --- */
+.avatar-overlap-wrapper {
+    position: relative;
+    margin-top: -120px; /* Overlap the hero */
+    padding: 0 4rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 2.5rem;
+    z-index: 10;
+}
+
+.avatar-ultra {
+    width: 240px;
+    height: 240px;
+    background: #ffffff;
+    border-radius: 50%;
+    padding: 8px;
+    box-shadow: 0 30px 60px -12px rgba(0,0,0,0.25);
+    flex-shrink: 0;
+    position: relative;
+    cursor: zoom-in;
+}
+
+.avatar-ultra::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0.6;
+}
+
+.avatar-ultra .img-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--bg-body);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 6rem;
+    font-weight: 900;
+    color: var(--primary);
+}
+
+.avatar-ultra img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-quick-stats {
+    flex-grow: 1;
+    padding-bottom: 2rem;
+    display: flex;
+    gap: 1.5rem;
+}
+
+.stat-chip {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0,0,0,0.03);
+}
+
+.stat-chip span:first-child {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-chip span:last-child {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* --- V2 Navigation --- */
+.v2-tabs {
+    margin: 3rem 0;
+    display: flex;
+    gap: 1.5rem;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 0 4rem;
+}
+
+.v2-tab-btn {
+    padding: 1rem 0;
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.v2-tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 3px;
+    background: var(--primary);
+    transition: width 0.3s ease;
+    border-radius: 10px;
+}
+
+.v2-tab-btn.active {
+    color: var(--primary);
+}
+
+.v2-tab-btn.active::after {
+    width: 100%;
+}
+
+.v2-tab-btn:hover {
+    color: var(--primary);
+}
+
+/* --- Modern Glass Panels --- */
+.tab-content-v2 {
+    padding: 0 2.5rem;
+}
+
+.v2-panel {
+    display: none;
+    animation: slideUpFade 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.v2-panel.active {
+    display: block;
+}
+
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.v2-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 2rem;
+}
+
+.v2-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.v2-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.v2-card-header {
+    background: #f8fafc;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.v2-card-header i {
+    font-size: 1.5rem;
+    color: var(--primary);
+    background: white;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+}
+
+.v2-card-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.v2-card-body {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.v2-info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+}
+
+.v2-info-row i {
+    font-size: 1.25rem;
+    color: var(--text-light);
+    margin-top: 0.2rem;
+    width: 24px;
+}
+
+.info-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-details label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.info-details span {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* --- Action Buttons --- */
+.floating-actions {
+    position: absolute;
+    top: 2rem;
+    right: 4rem;
+    z-index: 100;
+}
+
+.btn-premium-v2 {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.8rem 1.8rem;
+    border-radius: 16px;
+    font-weight: 600;
+    text-decoration: none !important;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-premium-v2:hover {
+    background: white;
+    color: var(--primary);
+    transform: translateY(-2px);
+}
+
+/* --- Responsive --- */
+/* --- Lightbox --- */
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    cursor: zoom-out;
+    backdrop-filter: blur(10px);
+}
+
+.lightbox-overlay.active { display: flex; animation: fadeIn 0.3s ease; }
+
+.lightbox-content {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 20px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.lightbox-overlay.active .lightbox-content { transform: scale(1); }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+@media (max-width: 1024px) {
+    .hero-banner {
+        height: 280px;
+        padding: 0 2rem;
+    }
+    .hero-text h1 { font-size: 2.5rem; }
+    .avatar-ultra { width: 180px; height: 180px; border-radius: 45px; }
+    .avatar-overlap-wrapper { padding: 0 2rem; margin-top: -90px; }
+    .floating-actions { right: 2rem; }
+    .v2-tabs { padding: 0 2rem; }
+}
+
+@media (max-width: 768px) {
+    .profile-container-v2 { padding: 1rem; }
+    .hero-banner { height: 220px; border-radius: 20px; }
+    .hero-text h1 { font-size: 2rem; }
+    .avatar-ultra { width: 140px; height: 140px; border-radius: 35px; }
+    .avatar-ultra .img-container { font-size: 4rem; }
+    .avatar-overlap-wrapper { flex-direction: column; align-items: center; text-align: center; margin-top: -70px; gap: 1rem; }
+    .profile-quick-stats { flex-wrap: wrap; justify-content: center; padding-bottom: 0; }
+    .v2-tabs { padding: 0 1rem; flex-wrap: wrap; justify-content: center; }
+    .tab-content-v2 { padding: 0 0.5rem; }
+    .v2-grid { grid-template-columns: 1fr; }
+    .floating-actions { position: relative; top: 0; right: 0; margin-bottom: 1rem; display: flex; justify-content: center; }
+}
+</style>
+
+<div class="profile-container-v2">
+    {% if profile %}
+        
+        <div class="floating-actions">
+            <a href="{% url 'change_password' %}" class="btn-premium-v2">
+                <i class="bi bi-shield-lock"></i>
+                <span>Security</span>
+            </a>
+        </div>
+
+        <!-- Hero Section -->
+        <header class="hero-banner">
+            <div class="hero-pattern"></div>
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>{{ profile.name }}</h1>
+                    <p>
+                        <span><i class="bi bi-award me-1"></i> {{ profile.designation }}</span>
+                        <span><i class="bi bi-geo-alt me-1"></i> {{ profile.location }}</span>
+                    </p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Overlapping Profile Photo Area -->
+        <div class="avatar-overlap-wrapper">
+            <div class="avatar-ultra" onclick="openLightbox()">
+                <div class="img-container">
+                    {% if profile.photo %}
+                        <img src="data:image/jpeg;base64,{{ profile.photo }}" alt="{{ profile.name }}" id="profilePhoto" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        {{ profile.name|slice:":1" }}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="profile-quick-stats">
+                <div class="stat-chip">
+                    <span>Department</span>
+                    <span>{{ profile.department_name }}</span>
+                </div>
+                <div class="stat-chip">
+                    <span>Emp Code</span>
+                    <span>#{{ profile.emp_code }}</span>
+                </div>
+                <div class="stat-chip">
+                    <span>Status</span>
+                    <span>{{ profile.employment_type }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Navigation -->
+        <nav class="v2-tabs">
+            <button class="v2-tab-btn active" onclick="switchV2Tab(this, 'official')">Official Profile</button>
+            <button class="v2-tab-btn" onclick="switchV2Tab(this, 'personal')">Personal Records</button>
+            <button class="v2-tab-btn" onclick="switchV2Tab(this, 'financial')">Financial Settings</button>
+        </nav>
+
+        <!-- Content Panels -->
+        <main class="tab-content-v2">
+            
+            <!-- Official Panel -->
+            <div class="v2-panel active" id="official-panel">
+                <div class="v2-grid">
+                    <div class="v2-card">
+                        <div class="v2-card-header">
+                            <i class="bi bi-building"></i>
+                            <h3>Organization Details</h3>
+                        </div>
+                        <div class="v2-card-body">
+                            <div class="v2-info-row">
+                                <i class="bi bi-diagram-3"></i>
+                                <div class="info-details">
+                                    <label>Reporting Team</label>
+                                    <span>{{ profile.team }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-calendar4-event"></i>
+                                <div class="info-details">
+                                    <label>Date of Joining</label>
+                                    <span>{{ profile.doj|date:"d M, Y" }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-envelope"></i>
+                                <div class="info-details">
+                                    <label>Company Email</label>
+                                    <span>{{ profile.email }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="v2-card">
+                        <div class="v2-card-header">
+                            <i class="bi bi-briefcase"></i>
+                            <h3>Professional Profile</h3>
+                        </div>
+                        <div class="v2-card-body">
+                            <div class="v2-info-row">
+                                <i class="bi bi-mortarboard"></i>
+                                <div class="info-details">
+                                    <label>Highest Qualification</label>
+                                    <span>{{ profile.qualification }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-clock-history"></i>
+                                <div class="info-details">
+                                    <label>Total Experience</label>
+                                    <span>{{ profile.total_experience }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-building-check"></i>
+                                <div class="info-details">
+                                    <label>Previous Organization</label>
+                                    <span>{{ profile.prev_org }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Panel -->
+            <div class="v2-panel" id="personal-panel">
+                <div class="v2-grid">
+                    <div class="v2-card">
+                        <div class="v2-card-header">
+                            <i class="bi bi-person-circle"></i>
+                            <h3>Basic Information</h3>
+                        </div>
+                        <div class="v2-card-body">
+                            <div class="v2-info-row">
+                                <i class="bi bi-gender-ambiguous"></i>
+                                <div class="info-details">
+                                    <label>Gender</label>
+                                    <span>{{ profile.gender }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-balloon"></i>
+                                <div class="info-details">
+                                    <label>Birth Date</label>
+                                    <span>{{ profile.dob|date:"d M, Y" }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-heart"></i>
+                                <div class="info-details">
+                                    <label>Marital Status</label>
+                                    <span>{{ profile.marital_status }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-droplet"></i>
+                                <div class="info-details">
+                                    <label>Blood Group</label>
+                                    <span>{{ profile.blood_group }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="v2-card">
+                        <div class="v2-card-header">
+                            <i class="bi bi-telephone-plus"></i>
+                            <h3>Contact & Identity</h3>
+                        </div>
+                        <div class="v2-card-body">
+                            <div class="v2-info-row">
+                                <i class="bi bi-phone"></i>
+                                <div class="info-details">
+                                    <label>Primary Contact</label>
+                                    <span>{{ profile.contact_no }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-card-heading"></i>
+                                <div class="info-details">
+                                    <label>Aadhaar / National ID</label>
+                                    <span>•••• •••• {{ profile.aadhaar_number|slice:"-4:" }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-credit-card"></i>
+                                <div class="info-details">
+                                    <label>PAN Number</label>
+                                    <span>{{ profile.pan_number }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-hash"></i>
+                                <div class="info-details">
+                                    <label>UAN Number</label>
+                                    <span>{{ profile.uan_number }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-geo"></i>
+                                <div class="info-details">
+                                    <label>Resident Address</label>
+                                    <span>{{ profile.residential_address }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-shield-exclamation"></i>
+                                <div class="info-details">
+                                    <label>Emergency Contact</label>
+                                    <span>{{ profile.emergency_contact }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="v2-card">
+                        <div class="v2-card-header">
+                            <i class="bi bi-people"></i>
+                            <h3>Family Details</h3>
+                        </div>
+                        <div class="v2-card-body">
+                            <div class="v2-info-row">
+                                <i class="bi bi-person"></i>
+                                <div class="info-details">
+                                    <label>Father's Name</label>
+                                    <span>{{ profile.father_name }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-person-heart"></i>
+                                <div class="info-details">
+                                    <label>Mother's Name</label>
+                                    <span>{{ profile.mother_name }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="v2-card">
+                        <div class="v2-card-header">
+                            <i class="bi bi-patch-check"></i>
+                            <h3>Certifications & BGV</h3>
+                        </div>
+                        <div class="v2-card-body">
+                            <div class="v2-info-row">
+                                <i class="bi bi-award"></i>
+                                <div class="info-details">
+                                    <label>AAPC Certification</label>
+                                    <span>{{ profile.aapc_cert }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-key"></i>
+                                <div class="info-details">
+                                    <label>Credential No</label>
+                                    <span>{{ profile.credential_no }}</span>
+                                </div>
+                            </div>
+                            <div class="v2-info-row">
+                                <i class="bi bi-search"></i>
+                                <div class="info-details">
+                                    <label>BGV Details</label>
+                                    <span>{{ profile.bgv_details }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Panel -->
+            <div class="v2-panel" id="financial-panel">
+                <div class="v2-grid">
+                    <div class="v2-card" style="grid-column: 1 / -1;">
+                        <div class="v2-card-header">
+                            <i class="bi bi-cash-coin"></i>
+                            <h3>Bank Account Management</h3>
+                        </div>
+                        <div class="v2-card-body">
+                            {% if bank.bank_name %}
+                            <div style="display: flex; gap: 4rem; flex-wrap: wrap;">
+                                <div class="v2-info-row">
+                                    <i class="bi bi-bank"></i>
+                                    <div class="info-details">
+                                        <label>Bank Name</label>
+                                        <span>{{ bank.bank_name }}</span>
+                                    </div>
+                                </div>
+                                <div class="v2-info-row">
+                                    <i class="bi bi-credit-card-2-front"></i>
+                                    <div class="info-details">
+                                        <label>Account Number</label>
+                                        <span>•••• •••• •••• {{ bank.account_number|slice:"-4:" }}</span>
+                                    </div>
+                                </div>
+                                <div class="v2-info-row">
+                                    <i class="bi bi-info-circle"></i>
+                                    <div class="info-details">
+                                        <label>IFSC Code</label>
+                                        <span>{{ bank.ifsc_code }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No banking records found on file.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+    {% else %}
+        <div class="hero-banner">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Participant Profile</h1>
+                    <p>Profile data could not be loaded.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Photo Lightbox Overlay -->
+<div id="photoLightbox" class="lightbox-overlay" onclick="closeLightbox()">
+    {% if profile.photo %}
+        <img class="lightbox-content" src="data:image/jpeg;base64,{{ profile.photo }}" alt="{{ profile.name }}">
+    {% endif %}
+</div>
+
+<script>
+function openLightbox() {
+    const lightbox = document.getElementById('photoLightbox');
+    if (lightbox) lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Prevent scroll
+}
+
+function closeLightbox() {
+    const lightbox = document.getElementById('photoLightbox');
+    if (lightbox) lightbox.classList.remove('active');
+    document.body.style.overflow = 'auto'; // Restore scroll
+}
+
+function switchV2Tab(btn, tabId) {
+    // Nav styling
+    document.querySelectorAll('.v2-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Panel visibility
+    document.querySelectorAll('.v2-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(tabId + '-panel').classList.add('active');
+}
+</script>
+
+{% endblock %}

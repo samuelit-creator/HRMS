@@ -1,0 +1,591 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<!-- Import Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ================== VARIABLES & RESET ================== */
+:root {
+  --primary: #1e293b;
+  --primary-light: #334155;
+  --accent: #3b82f6;
+  --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  
+  --present: #22c55e;
+  --present-bg: #dcfce7;
+  --absent: #ef4444;
+  --absent-bg: #fee2e2;
+  --late: #f59e0b;
+  --late-bg: #fef3c7;
+  --holiday: #8b5cf6;
+  --holiday-bg: #f3e8ff;
+  --off: #0ea5e9;
+  --off-bg: #e0f2fe;
+  --half-day: #fbbf24;
+  --half-day-bg: #fef3c7;
+  
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --radius: 16px;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg-gradient);
+  color: var(--primary);
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* ================== LAYOUT ================== */
+.dashboard-container {
+  max-width: 1300px;
+  margin: auto;
+  padding: 40px 20px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.dashboard-header h2 {
+  font-weight: 700;
+  font-size: 28px;
+  margin: 0;
+  background: linear-gradient(to right, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.user-badge {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 400;
+  margin-left: 8px;
+  -webkit-text-fill-color: #64748b; /* Reset for Safari */
+}
+
+/* ================== MONTH NAV ================== */
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  padding: 8px 20px;
+  border-radius: 50px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.month-nav a {
+  text-decoration: none;
+  font-size: 20px;
+  color: var(--accent);
+  transition: transform 0.2s;
+}
+
+.month-nav a:hover {
+  transform: scale(1.2);
+}
+
+.month-nav strong {
+  font-size: 18px;
+  min-width: 100px;
+  text-align: center;
+}
+
+/* ================== ATTENDANCE LAYOUT ================== */
+.attendance-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 32px;
+}
+
+/* ================== SUMMARY CARDS ================== */
+.summary-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.summary-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent);
+}
+
+.summary-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+}
+
+.summary-card.present::after { background: var(--present); }
+.summary-card.absent::after { background: var(--absent); }
+.summary-card.off::after { background: var(--off); }
+.summary-card.working::after { background: var(--accent); }
+
+.summary-card h3 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.summary-card p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* ================== CALENDAR ================== */
+.calendar-column {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  padding: 30px;
+  border-radius: 24px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-md);
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+}
+
+.calendar-header {
+  text-align: center;
+  font-weight: 700;
+  color: #64748b;
+  font-size: 13px;
+  text-transform: uppercase;
+  padding-bottom: 12px;
+}
+
+.day-card {
+  min-height: 100px;
+  padding: 12px;
+  font-size: 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.day-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  z-index: 10;
+  border-color: var(--accent);
+}
+
+.day-card.empty {
+  background: transparent;
+  border: none;
+  cursor: default;
+  box-shadow: none;
+}
+
+.day-header {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badge {
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: inline-block;
+  width: fit-content;
+}
+
+/* Badge variants */
+.present { background: var(--present-bg); color: #166534; }
+.absent { background: var(--absent-bg); color: #991b1b; }
+.late { background: var(--late-bg); color: #92400e; }
+.holiday { background: var(--holiday-bg); color: #5b21b6; }
+.off { background: var(--off-bg); color: #075985; }
+.half-day { background: var(--half-day-bg); color: #92400e; }
+.loose { background: #f1f5f9; color: #475569; }
+
+.time-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.time {
+  font-size: 10px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ================== POPUP ================== */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.popup-overlay.show {
+  opacity: 1;
+  display: flex;
+}
+
+.popup-card {
+  background: #fff;
+  padding: 32px;
+  width: 580px;
+  border-radius: 24px;
+  display: flex;
+  gap: 40px;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+}
+
+.popup-overlay.show .popup-card {
+  transform: translateY(0);
+}
+
+.popup-left {
+  flex: 1;
+}
+
+.popup-left h3 {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.detail-row b {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.detail-row span {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.popup-right {
+  width: 220px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.popup-right h4 {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+/* ================== RESPONSIVE ================== */
+@media (max-width: 1024px) {
+  .attendance-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .popup-card {
+    flex-direction: column;
+    width: 90%;
+    padding: 24px;
+    gap: 24px;
+  }
+  .calendar {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .day-card {
+    min-height: 80px;
+    padding: 8px;
+  }
+  .day-header { font-size: 14px; }
+  .badge { font-size: 8px; }
+}
+
+</style>
+
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <div>
+      <h2>
+        {% if read_only %}
+          Attendance: <b>{{ employee_name }}</b>
+          <span class="user-badge">(Viewer: {{ viewer_name }})</span>
+        {% else %}
+          Good <span id="greetingTime"></span>, {{ emp_name }}
+        {% endif %}
+      </h2>
+    </div>
+    
+    <div class="month-nav">
+      <a href="{{ month_nav_url }}?month={{ month|add:'-1' }}&year={{ year }}">◀</a>
+      <strong>{{ month }} / {{ year }}</strong>
+      <a href="{{ month_nav_url }}?month={{ month|add:'1' }}&year={{ year }}">▶</a>
+    </div>
+  </div>
+
+  <div class="attendance-layout">
+    <!-- SUMMARY -->
+    <div class="summary-column">
+      <div class="summary">
+        <div class="summary-card present"><h3>{{ total_present }}</h3><p>Present</p></div>
+        <div class="summary-card absent"><h3>{{ total_absent }}</h3><p>Absent</p></div>
+        <div class="summary-card off"><h3>{{ total_weekly_off }}</h3><p>Weekly Off</p></div>
+        <div class="summary-card off"><h3>{{ total_holiday }}</h3><p>Holidays</p></div>
+        <div class="summary-card off"><h3>{{ total_leave }}</h3><p>Leave</p></div>
+        <div class="summary-card working"><h3>{{ total_working }}</h3><p>Working Hrs</p></div>
+        <div class="summary-card off"><h3>{{ total_break }}</h3><p>Break Hrs</p></div>
+      </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="calendar-column">
+      <div class="calendar">
+        {% for d in weekdays %}
+          <div class="calendar-header">{{ d }}</div>
+        {% endfor %}
+
+        {% for day in calendar_grid %}
+          {% if day %}
+            <div class="day-card"
+              onclick="openDayPopup(this)"
+              data-date="{{ day.date|date:'d-m-Y' }}"
+              data-status="{{ day.status }}"
+              data-in="{{ day.punch_in|date:'H:i' }}"
+              data-out="{{ day.punch_out|date:'H:i' }}"
+              data-late="{{ day.late|yesno:'true,false' }}"
+              data-late-duration="{{ day.late_duration }}"
+              data-working="{{ day.working }}"
+              data-break="{{ day.break }}">
+
+              <div class="day-header">
+                <span>{{ day.date|date:"d" }}</span>
+              </div>
+
+              {% if day.status == "Present full day" %}
+                <div class="badge present">Present Full Day</div>
+                {% if day.early_going %}<div class="badge late">Early Going</div>{% endif %}
+                {% if day.leave_type == "Permission" %}<div class="badge off">Permission</div>{% endif %}
+                <div class="time-container">
+                  <div class="time">In: {{ day.punch_in|date:"H:i" }}</div>
+                  <div class="time">Out: {{ day.punch_out|date:"H:i" }}</div>
+                </div>
+              {% elif day.status == "Late" %}
+                <div class="badge present">Present</div>
+                <div class="badge late">Late</div>
+                {% if day.early_going %}<div class="badge late">Early Going</div>{% endif %}
+                {% if day.leave_type == "Permission" %}<div class="badge off">Permission</div>{% endif %}
+                <div class="time-container">
+                  <div class="time">In: {{ day.punch_in|date:"H:i" }}</div>
+                  <div class="time">Out: {{ day.punch_out|date:"H:i" }}</div>
+                </div>
+              {% elif day.status == "Half Day" or day.status == "Half Day Leave" %}
+                <div class="badge present">Present</div>
+                <div class="badge half-day">{% if "Leave" in day.status %}Approved Half Day{% else %}Half Day{% endif %}</div>
+                <div class="time-container">
+                  <div class="time">In: {{ day.punch_in|date:"H:i" }}</div>
+                  <div class="time">Out: {{ day.punch_out|date:"H:i" }}</div>
+                </div>
+              {% elif day.status == "Grace Time" %}
+                <div class="badge present">Present</div>
+                <div class="badge late">Grace Time</div>
+                <div class="time-container">
+                  <div class="time">In: {{ day.punch_in|date:"H:i" }}</div>
+                  <div class="time">Out: {{ day.punch_out|date:"H:i" }}</div>
+                </div>
+              {% elif day.status == "Permission" %}
+                <div class="badge present">Present</div>
+                <div class="badge off">Permission</div>
+              {% elif day.status == "Leave" %}
+                <div class="badge loose">{{ day.leave_type }}</div>
+              {% elif day.status == "Comp-Off Leave" %}
+                <div class="badge loose">Comp-Off</div>
+              {% elif day.status == "Work From Home present" %}
+                <div class="badge loose">WFH</div>
+              {% elif day.status == "Holiday" %}   
+                <div class="badge holiday">Holiday</div>
+              {% elif day.status == "Informed Leave" %}   
+                <div class="badge holiday">Informed</div>
+              {% elif day.status == "Weekly Off" or day.status == "WeekOff" %}       
+                <div class="badge off">Week Off</div>
+              {% else %}
+                <div class="badge absent">Absent</div>
+              {% endif %}
+
+            </div>
+          {% else %}
+            <div class="day-card empty"></div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= POPUP ================= -->
+<div id="dayPopup" class="popup-overlay" onclick="closeDayPopup()">
+  <div class="popup-card" onclick="event.stopPropagation()">
+    <div class="popup-left">
+      <h3 id="popupDate"></h3>
+      <div class="detail-row"><b>Status</b> <span id="popupStatus"></span></div>
+      <div class="detail-row"><b>Check In</b> <span id="popupIn"></span></div>
+      <div class="detail-row"><b>Check Out</b> <span id="popupOut"></span></div>
+      <div class="detail-row"><b>Late Arrival</b> <span id="popupLate"></span> (<span id="popupLateDuration">00:00</span>)</div>
+      <div class="detail-row"><b>Working Hours</b> <span id="popupWorking"></span></div>
+      <div class="detail-row"><b>Break Hours</b> <span id="popupBreak"></span></div>
+    </div>
+
+    <div class="popup-right">
+      <h4>Daily Target (9 hrs)</h4>
+      <canvas id="dayWorkPie" width="180" height="180"></canvas>
+      <p id="workSummary" style="margin-top:16px; font-weight:700; color:var(--accent);"></p>
+    </div>
+  </div>
+</div>
+
+{{ chart_labels|json_script:"chart-labels" }}
+{{ monthly_break_hours|json_script:"break-data" }}
+{{ monthly_working_hours|json_script:"working-data" }}
+
+{{ read_only|json_script:"readonly-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function () {
+  const readOnly = JSON.parse(document.getElementById('readonly-data').textContent);
+  if (!readOnly) {
+    const hour = new Date().getHours();
+    let greeting = "Evening";
+    if (hour < 12) greeting = "Morning";
+    else if (hour < 17) greeting = "Afternoon";
+    const gEl = document.getElementById("greetingTime");
+    if(gEl) gEl.innerText = greeting;
+  }
+})();
+
+let dayChart = null;
+
+function toMin(t) {
+  if (!t || t === "—") return 0;
+  const [h,m] = t.split(":").map(Number);
+  return h*60 + m;
+}
+
+function openDayPopup(card) {
+  const inT = card.dataset.in;
+  const outT = card.dataset.out;
+  const br = card.dataset.break || "00:00";
+
+  document.getElementById("popupDate").innerText = card.dataset.date;
+  document.getElementById("popupStatus").innerText = card.dataset.status;
+  document.getElementById("popupIn").innerText = inT || "—";
+  document.getElementById("popupOut").innerText = outT || "—";
+  document.getElementById("popupLate").innerText = card.dataset.late === "true" ? "Yes" : "No";
+  document.getElementById("popupLateDuration").innerText = card.dataset.lateDuration || "00:00";
+  document.getElementById("popupWorking").innerText = card.dataset.working || "00:00";
+  document.getElementById("popupBreak").innerText = br;
+
+  const worked = Math.max(toMin(outT) - toMin(inT) - toMin(br), 0);
+  const target = 540;
+
+  document.getElementById("workSummary").innerText = (worked/60).toFixed(2) + " hrs worked";
+
+  if (dayChart) dayChart.destroy();
+
+  const ctx = document.getElementById("dayWorkPie").getContext('2d');
+  dayChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Worked','Remaining'],
+      datasets: [{
+        data: [worked, Math.max(target-worked, 0)],
+        backgroundColor: ['#3b82f6','#f1f5f9'],
+        borderWidth: 0
+      }]
+    },
+    options: { 
+      cutout: '75%',
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+
+  const overlay = document.getElementById("dayPopup");
+  overlay.style.display = "flex";
+  setTimeout(() => overlay.classList.add('show'), 10);
+}
+
+function closeDayPopup() {
+  const overlay = document.getElementById("dayPopup");
+  overlay.classList.remove('show');
+  setTimeout(() => overlay.style.display = "none", 300);
+}
+</script>
+
+{% endblock %}

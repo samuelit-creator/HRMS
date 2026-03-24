@@ -1,0 +1,71 @@
+{% extends "myapp/base.html" %}
+{% block title %}My Assets{% endblock %}
+{% block page_title %}My Assigned Assets{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h4 class="mb-0 fw-bold">My Hardware</h4>
+        <p class="text-muted small mb-0">List of company property currently assigned to you.</p>
+    </div>
+
+    <div class="row">
+        {% for allocation in allocations %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="icon-box bg-primary-subtle text-primary rounded-3 p-3">
+                            {% if allocation.Asset.AssetType == 'Laptop' %}
+                                <i class="bi bi-laptop fs-3"></i>
+                            {% elif allocation.Asset.AssetType == 'Phone' %}
+                                <i class="bi bi-phone fs-3"></i>
+                            {% else %}
+                                <i class="bi bi-keyboard fs-3"></i>
+                            {% endif %}
+                        </div>
+                        <span class="badge rounded-pill bg-primary-subtle text-primary small px-3">Active</span>
+                    </div>
+                    
+                    <h5 class="fw-bold mb-1">{{ allocation.Asset.Name }}</h5>
+                    <p class="text-muted small mb-3">Tag: <span class="fw-bold">{{ allocation.Asset.AssetTag }}</span></p>
+                    
+                    <div class="bg-light rounded-3 p-3 mt-3">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="text-muted x-small text-uppercase fw-bold">Assigned On</label>
+                                <div class="small fw-medium">{{ allocation.AllocatedDate|date:"d M, Y" }}</div>
+                            </div>
+                            <div class="col-6">
+                                <label class="text-muted x-small text-uppercase fw-bold">Model</label>
+                                <div class="small fw-medium">{{ allocation.Asset.Model|default:"Standard" }}</div>
+                            </div>
+                            <div class="col-12 mt-2 pt-2 border-top">
+                                <label class="text-muted x-small text-uppercase fw-bold">Condition</label>
+                                <div class="small">{{ allocation.ConditionOnAllocation|default:"Good" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted">
+                <i class="bi bi-shield-check display-1 mb-3 d-block opacity-10"></i>
+                <p class="fs-5">No assets assigned!</p>
+                <p>You currently don't have any company hardware assigned to your profile.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .x-small { font-size: 0.65rem; }
+    .card { border-radius: 16px; border: 1px solid rgba(0,0,0,0.05); transition: transform 0.2s; }
+    .card:hover { transform: translateY(-5px); }
+    .icon-box { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+    .bg-primary-subtle { background-color: #eff6ff !important; }
+</style>
+{% endblock %}

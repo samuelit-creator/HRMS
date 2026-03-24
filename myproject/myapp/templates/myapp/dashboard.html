@@ -1,0 +1,652 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<style>
+    :root {
+        --card-bg: rgba(255, 255, 255, 0.85);
+        --glass-bg: rgba(255, 255, 255, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.3);
+    }
+
+    .dashboard-wrapper {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* HEADER SECTION */
+    .dash-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        padding: 1.5rem 2rem;
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .dash-welcome h2 {
+        font-weight: 700;
+        color: var(--slate-800);
+        margin: 0;
+    }
+
+    .dash-welcome p {
+        color: var(--slate-500);
+        margin: 0.2rem 0 0 0;
+    }
+
+    .month-navigator {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        background: white;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .nav-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: var(--slate-50);
+        color: var(--primary);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    /* METRIC GRID */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .metric-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 1px solid transparent;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary-light);
+    }
+
+    .metric-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .metric-info h3 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 0;
+        color: var(--slate-800);
+    }
+
+    .metric-info p {
+        font-size: 0.85rem;
+        color: var(--slate-500);
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* CHART SECTION */
+    .dashboard-main {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        align-items: start; /* Prevent cards from stretching to match peers */
+    }
+
+    .chart-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 20px;
+        box-shadow: var(--shadow-sm);
+        height: 480px; /* Fixed height to control depth */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chart-body {
+        flex: 1;
+        min-height: 0; /* Allow canvas to shrink/fit */
+        position: relative;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-header h4 {
+        margin: 0;
+        font-weight: 700;
+        color: var(--slate-700);
+    }
+
+    /* LEAVE UTILIZATION */
+    .leave-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 20px;
+        box-shadow: var(--shadow-sm);
+        height: 480px; /* Match chart height */
+        overflow-y: auto; /* Scroll if policy exceeds height */
+    }
+
+    .leave-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .leave-item {
+        padding: 1rem;
+        border-radius: 14px;
+        background: var(--slate-50);
+        border: 1px solid var(--slate-100);
+    }
+
+    .leave-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-bar-bg {
+        height: 8px;
+        background: var(--slate-200);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 1s ease-in-out;
+    }
+
+    /* RECENT LEAVES TABLE */
+    .recent-leaves {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 20px;
+        box-shadow: var(--shadow-sm);
+        margin-top: 2rem;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+    }
+
+    .table-custom th {
+        color: var(--slate-500);
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+        text-transform: uppercase;
+    }
+
+    .table-custom tr {
+        background: var(--slate-50);
+        transition: all 0.2s;
+    }
+
+    .table-custom tr:hover {
+        background: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        transform: scale(1.005);
+    }
+
+    .table-custom td {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .table-custom td:first-child { border-radius: 12px 0 0 12px; }
+    .table-custom td:last-child { border-radius: 0 12px 12px 0; }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .status-approved { background: #dcfce7; color: #166534; }
+    .status-pending { background: #fef9c3; color: #854d0e; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+
+
+    /* ANNOUNCEMENTS & BIRTHDAYS */
+    .alerts-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .alert-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 20px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--glass-border);
+    }
+
+    .alert-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.2rem;
+        border-bottom: 1px solid var(--slate-100);
+        padding-bottom: 0.8rem;
+    }
+
+    .alert-header h4 {
+        margin: 0;
+        font-weight: 700;
+        color: var(--slate-700);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .announcement-item {
+        padding: 1rem;
+        border-radius: 12px;
+        background: #f8fafc;
+        border-left: 4px solid var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    .announcement-item h5 {
+        margin: 0 0 0.3rem 0;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .announcement-item p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--slate-600);
+    }
+
+    .announcement-date {
+        font-size: 0.75rem;
+        color: var(--slate-400);
+        margin-top: 0.5rem;
+        display: block;
+    }
+
+    .birthday-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.8rem;
+        border-radius: 12px;
+        transition: background 0.2s;
+    }
+
+    .birthday-item:hover {
+        background: #fff1f2;
+    }
+
+    .bday-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .bday-fallback {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+    }
+
+    .bday-info h5 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .bday-info p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--slate-500);
+    }
+
+    .bday-today {
+        background: #fff1f2;
+        border: 1px solid #fecdd3;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+
+    @media (max-width: 992px) {
+        .alerts-row { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="dashboard-wrapper">
+    <!-- TOP HEADER -->
+    <div class="dash-header">
+        <div class="dash-welcome">
+            {% if read_only %}
+                <h2>{{ employee_name }}</h2>
+                <p>Attendance Snapshot (Viewer: {{ viewer_name }})</p>
+            {% else %}
+                <h2>Good <span id="greetingTime"></span>, {{ emp_name }}</h2>
+                <p>Welcome back to your employee portal.</p>
+            {% endif %}
+        </div>
+        <div class="month-navigator">
+            <a href="{% url 'dashboard' %}?month={{ month|add:'-1' }}&year={{ year }}" class="nav-btn"><i class="bi bi-chevron-left"></i></a>
+            <strong>{{ month }}/{{ year }}</strong>
+            <a href="{% url 'dashboard' %}?month={{ month|add:'1' }}&year={{ year }}" class="nav-btn"><i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+
+    <!-- METRICS GRID -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon" style="background: #dcfce7; color: #166534;"><i class="bi bi-person-check"></i></div>
+            <div class="metric-info">
+                <h3>{{ total_present }}</h3>
+                <p>Days Present</p>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon" style="background: #fee2e2; color: #991b1b;"><i class="bi bi-person-x"></i></div>
+            <div class="metric-info">
+                <h3>{{ total_absent }}</h3>
+                <p>Days Absent</p>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon" style="background: #e0e7ff; color: #3730a3;"><i class="bi bi-calendar-event"></i></div>
+            <div class="metric-info">
+                <h3>{{ total_quarter_left }}</h3>
+                <p>Leaves Left (Quarter)</p>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon" style="background: #fef9c3; color: #854d0e;"><i class="bi bi-clock-history"></i></div>
+            <div class="metric-info">
+                <h3>{{ avg_working_hours }}h</h3>
+                <p>Avg. Work</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERTS SECTION -->
+    <div class="alerts-row">
+        <!-- Announcements -->
+        <div class="alert-card announcement-card-box">
+            <div class="alert-header">
+                <h4><i class="bi bi-megaphone" style="color: var(--primary);"></i> Company Announcements</h4>
+                {% if user_allocate_position == "HR" %}
+                <a href="{% url 'announcement_list' %}" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem;">Manage</a>
+                {% endif %}
+            </div>
+            <div class="announcement-list-box">
+                {% for ann in announcements %}
+                <div class="announcement-item">
+                    <h5>{{ ann.Title }}</h5>
+                    <p>{{ ann.Content|urlize|linebreaksbr }}</p>
+                    <span class="announcement-date">{{ ann.CreatedAt|date:"d M Y" }}</span>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-4">No active announcements.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Birthdays -->
+        <div class="alert-card birthday-card">
+            <div class="alert-header">
+                <h4><i class="bi bi-gift" style="color: #ec4899;"></i> Birthdays</h4>
+            </div>
+            <div class="birthday-list">
+                {% for bday in birthdays %}
+                <div class="birthday-item {% if bday.is_today %}bday-today{% endif %}">
+                    {% if bday.photo %}
+                    <img src="data:image/jpeg;base64,{{ bday.photo }}" class="bday-avatar" alt="{{ bday.name }}">
+                    {% else %}
+                    <div class="bday-fallback">{{ bday.name|slice:":1" }}</div>
+                    {% endif %}
+                    <div class="bday-info">
+                        <h5>{{ bday.name }}</h5>
+                        <p>{% if bday.is_today %}<b>Celebrating Today!</b>{% else %}{{ bday.dob|date:"d M" }}{% endif %}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-4">No upcoming birthdays.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <div class="dashboard-main">
+        <!-- ANALYTICS SECTION -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h4>Working & Break Hours</h4>
+                <div class="badge bg-light text-dark">L30D Snapshot</div>
+            </div>
+            <div class="chart-body">
+                <canvas id="mainDashboardChart"></canvas>
+            </div>
+            <div class="mt-3 d-flex justify-content-around">
+                <div class="text-center">
+                    <p class="mb-0 text-muted small">TOTAL WORK</p>
+                    <h5 class="fw-bold text-primary" style="font-size: 1.1rem;">{{ total_working }}</h5>
+                </div>
+                <div class="text-center">
+                    <p class="mb-0 text-muted small">TOTAL BREAK</p>
+                    <h5 class="fw-bold text-danger" style="font-size: 1.1rem;">{{ total_break }}</h5>
+                </div>
+                <div class="text-center">
+                    <p class="mb-0 text-muted small">AVG PUNCH IN</p>
+                    <h5 class="fw-bold text-success" style="font-size: 1.1rem;">{{ avg_first_punch_time }}</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEAVE UTILIZATION SIDE -->
+        <div class="leave-card">
+            <h4 class="mb-4 fw-bold text-slate-700">Leave Balance</h4>
+            <div class="leave-grid" id="leaveBalances">
+                <!-- Data injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- RECENT LEAVE REQUESTS -->
+    <div class="recent-leaves">
+        <h4 class="mb-4 fw-bold text-slate-700">Leave History</h4>
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Date Range</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in leaves|slice:":5" %}
+                    <tr>
+                        <td><b>{{ l.from }}</b> to {{ l.to }}</td>
+                        <td>{{ l.type }}</td>
+                        <td>
+                            <span class="status-badge {% if l.status == 'APPROVED' %}status-approved{% elif l.status == 'REJECTED' %}status-rejected{% else %}status-pending{% endif %}">
+                                {{ l.status }}
+                            </span>
+                        </td>
+                        <td class="text-muted">{{ l.remarks|default:"--" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center py-4">No recent leave requests found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{{ balances|json_script:"balances-data" }}
+{{ chart_labels|json_script:"chart-labels" }}
+{{ monthly_break_hours|json_script:"break-data" }}
+{{ monthly_working_hours|json_script:"working-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Greeting logic
+        (function() {
+            const hour = new Date().getHours();
+            let greeting = "Evening";
+            if (hour < 12) greeting = "Morning";
+            else if (hour < 17) greeting = "Afternoon";
+            const greetingEl = document.getElementById("greetingTime");
+            if (greetingEl) greetingEl.innerText = greeting;
+        })();
+
+        // Data processing
+        const chartLabels = JSON.parse(document.getElementById("chart-labels").textContent);
+        const breakData = JSON.parse(document.getElementById("break-data").textContent).map(v => v === null ? 0 : v);
+        const workingData = JSON.parse(document.getElementById("working-data").textContent).map(v => v === null ? 0 : v);
+        const balances = JSON.parse(document.getElementById("balances-data").textContent);
+
+        // LEAVE BALANCES UI
+        const LEAVE_CONFIG = {
+            "Casual Leave": { color: "#6366f1", limit: 3 },
+            "Sick Leave": { color: "#ec4899", limit: 1 },
+            "Optional Leave": { color: "#10b981", limit: 1 },
+            "Grace Time": { color: "#f59e0b", limit: 3 },
+            "Permission": { color: "#8b5cf6", limit: 4 }
+        };
+
+        const leaveContainer = document.getElementById("leaveBalances");
+        Object.keys(LEAVE_CONFIG).forEach(type => {
+            const remaining = balances[type] ?? 0;
+            const limit = LEAVE_CONFIG[type].limit;
+            const used = Math.max(limit - remaining, 0);
+            const percent = (remaining / limit) * 100;
+            const color = LEAVE_CONFIG[type].color;
+
+            const html = `
+                <div class="leave-item">
+                    <div class="leave-stats">
+                        <span class="fw-bold small">${type}</span>
+                        <span class="small text-muted">${remaining}/${limit} Left</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: ${percent}%; background: ${color};"></div>
+                    </div>
+                </div>
+            `;
+            leaveContainer.insertAdjacentHTML('beforeend', html);
+        });
+
+        // MAIN COMBINED CHART
+        const ctx = document.getElementById("mainDashboardChart").getContext("2d");
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [
+                    {
+                        label: 'Working Hours',
+                        data: workingData,
+                        backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                    },
+                    {
+                        label: 'Break Hours',
+                        data: breakData,
+                        backgroundColor: 'rgba(239, 68, 68, 0.4)',
+                        borderColor: '#ef4444',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, font: { size: 11 } } },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { 
+                        beginAtZero: true,
+                        grid: { borderDash: [2, 2], color: '#f1f5f9' },
+                        ticks: { callback: value => value + 'h' }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}

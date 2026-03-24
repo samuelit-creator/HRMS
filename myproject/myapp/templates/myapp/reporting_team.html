@@ -1,0 +1,663 @@
+{% extends "myapp/base.html" %}
+
+{% block title %}Team Attendance{% endblock %}
+{% block page_title %}My Team{% endblock %}
+{% block content %}
+
+<!-- CUSTOM STYLES -->
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: #f0f2f7;
+        color: #495057;
+    }
+
+    .container-fluid {
+        padding: 30px 40px;
+    }
+
+    /* HEADER */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .dashboard-header input[type="date"] {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        padding: 5px 10px;
+        transition: all 0.3s;
+    }
+
+    .dashboard-header input[type="date"]:focus {
+        outline: none;
+        border-color: #0d6efd;
+        box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
+    }
+
+    /* STAT CARDS */
+    .stat-card {
+        border-radius: 15px;
+        padding: 25px 20px;
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card h6 {
+        font-weight: 500;
+        font-size: 14px;
+        color: #6c757d;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card h3 {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .stat-card .icon {
+        font-size: 24px;
+        opacity: 0.7;
+    }
+
+    .present {
+        color: #28a745;
+    }
+
+    .absent {
+        color: #dc3545;
+    }
+
+    .shrinkage {
+        color: #ffc107;
+    }
+
+    /* ATTENDANCE RING */
+    .progress-ring {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: conic-gradient(#0d6efd 0% 0%, #e9ecef 0%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 20px;
+        margin: auto;
+        position: relative;
+    }
+
+    .progress-ring span {
+        position: relative;
+        /* ← important */
+        font-size: 18px;
+        font-weight: 700;
+        z-index: 2;
+        /* ← IMPORTANT */
+    }
+
+    .progress-ring::after {
+        content: '';
+        position: absolute;
+        width: 70px;
+        height: 70px;
+        background: #fff;
+        border-radius: 50%;
+        z-index: 1;
+    }
+
+
+    /* TEAM CARDS */
+    .team-card {
+        border-radius: 15px;
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-bottom: 25px;
+        transition: all 0.3s;
+        width: 800px;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        margin: 0 auto;
+        /* center horizontally */
+    }
+
+    .team-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .team-card-header {
+        background: linear-gradient(120deg, #0d6efd, #6610f2);
+        color: #fff;
+        padding: 15px 20px;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 15px;
+    }
+
+    .team-card-header small {
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 400;
+    }
+
+    .table td,
+    .table th {
+        font-size: 13px;
+        vertical-align: middle;
+    }
+
+    .badge-present {
+        background: #28a745;
+    }
+
+    .badge-absent {
+        background: #dc3545;
+    }
+
+    /* LEAVE NOTIFICATIONS */
+    .leave-card {
+        border-radius: 15px;
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-bottom: 25px;
+    }
+
+    .leave-card-header {
+        background: linear-gradient(120deg, #0d6efd, #6610f2);
+        color: #fff;
+        padding: 15px 20px;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 20px;
+        padding: 15px 20px;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+    .tabs a {
+        text-decoration: none;
+        color: #6c757d;
+        font-weight: 500;
+        padding-bottom: 5px;
+        transition: all 0.3s;
+    }
+
+    .tabs a.active {
+        color: #0a8f6a;
+        border-bottom: 3px solid #0a8f6a;
+    }
+
+    .leave-table thead {
+        background: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+    }
+
+    .leave-table tbody tr:hover {
+        background: #eef4ff;
+    }
+
+    .status.approved {
+        color: #198754;
+        font-weight: 600;
+    }
+
+    .status.rejected {
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    .status.pending {
+        color: #ffc107;
+        font-weight: 600;
+    }
+
+    /* SWIPER */
+    .swiper {
+        width: 100%;
+        max-width: 1200px;
+        height: 420px;
+        margin: 40px auto;
+    }
+
+    .swiper-slide {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .scrollable-table {
+        height: 280px;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    /* WHO IS IN DONUT */
+    .whoin-ring {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        margin: 0 auto;
+        position: relative;
+        background: conic-gradient(#e9ecef 0deg 360deg);
+    }
+
+    .whoin-center {
+        position: absolute;
+        inset: 35px;
+        background: #fff;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .whoin-center h3 {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .whoin-center small {
+        color: #6c757d;
+    }
+
+    /* Legend */
+    .whoin-legend {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px 20px;
+        font-size: 14px;
+        text-align: left;
+    }
+
+    .whoin-legend .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 6px;
+        display: inline-block;
+        margin-right: 8px;
+    }
+
+    .dot.ontime {
+        background: #6ee7b7;
+    }
+
+    .dot.late {
+        background: #fdba74;
+    }
+
+    .dot.notyet {
+        background: #fb7185;
+    }
+
+    .dot.leave {
+        background: #cbd5e1;
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- HEADER -->
+    <div class="dashboard-header">
+        <form method="get">
+            <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()">
+        </form>
+        <p class="text-muted mb-4">
+            <strong>{{ cycle_start|date:"d M Y" }}</strong> → <strong>{{ cycle_end|date:"d M Y" }}</strong>
+        </p>
+    </div>
+
+
+
+    <!-- STAT CARDS -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h6>Members</h6>
+                <h3><i class="fa-solid fa-users icon"></i> {{ total_count }}</h3>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h6 class="present">Present</h6>
+                <h3><i class="fa-solid fa-user-check icon"></i> {{ total_present }}</h3>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h6 class="absent">Absent</h6>
+                <h3><i class="fa-solid fa-user-times icon"></i> {{ total_absent }}</h3>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card">
+                <h6>Shrinkage</h6>
+                <h3 class="shrinkage">{{ shrinkage }}%</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h6 class="mb-3">Who Is In</h6>
+
+                <div class="whoin-ring" id="whoInRing">
+                    <div class="whoin-center">
+                        <h3>{{ who_total }}</h3>
+                        <small>Teammates</small>
+                    </div>
+                </div>
+
+                <div class="whoin-legend mt-4">
+                    <div><span class="dot ontime"></span> On Time <strong>{{ on_time }}</strong></div>
+                    <div><span class="dot late"></span> Late In <strong>{{ late_in }}</strong></div>
+                    <div><span class="dot notyet"></span> Not Yet In <strong>{{ not_yet_in }}</strong></div>
+                    <div><span class="dot leave"></span> On Leave <strong>{{ on_leave }}</strong></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TEAM CARDS SWIPER -->
+    <div class="swiper mySwiper">
+        <div class="swiper-wrapper">
+            {% for team in teams %}
+            <div class="swiper-slide">
+                <div class="team-card">
+                    <div class="team-card-header">
+                        <span>{{ team.team_name }} <small>({{ team.team_code }})</small></span>
+                        <span>
+                            Total: {{ team.members|length }} | Present: {{ team.present }} | Absent: {{ team.absent }}
+                        </span>
+                    </div>
+                    <div class="card-body p-0 scrollable-table">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Emp Code</th>
+                                        <th>Name</th>
+                                        <th>Status</th>
+                                        <th>Punch Status</th>
+                                        <th>Logout Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in team.members %}
+                                    <tr>
+                                        <td><a href="{% url 'spoc_employee_dashboard' row.emp_code %}">
+                                                {{ row.emp_code}}</a></td>
+                                        <td>{{ row.emp_name }}</td>
+                                        <td>
+                                            {% if row.status == 'PRESENT' %}
+                                            <span class="badge badge-present">Present</span>
+                                            {% else %}
+                                            <span class="badge badge-absent">Absent</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if row.status == 'PRESENT' %}
+                                            {% if row.punch_status == 'ON_TIME' %}
+                                            <span class="badge bg-success">On Time</span>
+                                            {% elif row.punch_status == 'LATE_IN' %}
+                                            <span class="badge bg-warning text-dark">Late In</span>
+                                            {% else %}
+                                            — <!-- For edge cases if punch_status is not set -->
+                                            {% endif %}
+                                            {% elif row.punch_status == 'ON_LEAVE' or row.punch_status == 'on_leave' %}
+                                            <span class="badge bg-secondary">On Leave</span>
+                                            {% elif row.punch_status == 'NOT_YET_IN' %}
+                                            <span class="badge bg-light text-dark">⏳ Not Yet In</span>
+                                            {% elif row.status == 'PERMISSION' %}
+                                            <span class="badge bg-info">Permission Granted</span>
+                                            <!-- Update this text as per your requirement -->
+                                            {% else %}
+                                            — <!-- Default case if none of the above match -->
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if row.status == 'PRESENT' or row.logout_status == 'PERMISSION' %}
+                                            {% if row.logout_status == 'EARLY_GOING' %}
+                                            <span class="badge bg-danger text-dark">Early Logout</span>
+                                            {% elif row.logout_status == 'PERMISSION' %}
+                                            <span class="badge bg-info">Permission</span>
+                                            {% else %}
+                                            <span class="badge bg-success">Hours Met</span>
+                                            {% endif %}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Swiper Pagination and Navigation -->
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+    </div>
+
+    <!-- LEAVE NOTIFICATIONS -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="leave-card">
+                <div class="leave-card-header d-flex justify-content-between align-items-center">
+                    <span>Leave Notifications</span>
+                    <a href="{% url 'export_leaves_excel' %}" class="btn btn-success btn-sm">
+                        <i class="fa-solid fa-file-excel me-1"></i> Export Excel
+                    </a>
+                </div>
+                <div class="tabs">
+                    <a href="?status=PENDING" class="{% if current_status == 'PENDING' %}active{% endif %}">Pending</a>
+                    <a href="?status=APPROVED"
+                        class="{% if current_status == 'APPROVED' %}active{% endif %}">Approved</a>
+                    <a href="?status=REJECTED"
+                        class="{% if current_status == 'REJECTED' %}active{% endif %}">Rejected</a>
+                </div>
+                <div class="table-responsive p-3">
+                    <table class="table leave-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Type</th>
+                                <th>Leave Reason</th>
+                                <th>Permission Hrs</th>
+                                <th>Remarks</th>
+                                <th>Action</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in leaves %}
+                            <tr>
+                                <td>{{ leave.employee }}</td>
+                                <td>{{ leave.from|date:"d-M-Y" }}</td>
+                                <td>{{ leave.to|date:"d-M-Y" }}</td>
+                                <td>{{ leave.type }}</td>
+                                <td>{{ leave.reason }}</td>
+                                <td>{{ leave.permission }} hr</td>
+                                <td>{{ leave.remarks }}</td>
+                                <td>
+                                    {% if leave.status == "PENDING" %}
+                                    <button class="btn btn-primary btn-sm"
+                                        onclick="openLeaveModal('{{ leave.leave_id }}')">Take Action</button>
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td
+                                    style="font-weight: bold; color: {% if leave.status == 'APPROVED' %}#0a8f6a{% elif leave.status == 'REJECTED' %}#d93025{% else %}#ffc107{% endif %};">
+                                    {{ leave.status }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7">No leave requests found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- LEAVE MODAL -->
+<div class="modal fade" id="leaveModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Leave Action</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="leaveId">
+                <div class="mb-3">
+                    <label class="form-label">Remarks</label>
+                    <textarea id="remarks" class="form-control" rows="3"
+                        placeholder="Enter remarks (mandatory)"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="submitLeave('REJECTED')">Reject</button>
+                <button class="btn btn-success" onclick="submitLeave('APPROVED')">Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS -->
+<script>
+    const attendanceTotal = {{ total_count }};
+    const attendancePresent = {{ total_present }};
+    const attendancePercent = attendanceTotal > 0 ? Math.round((attendancePresent / attendanceTotal) * 100) : 0;
+
+    const attendanceRing = document.getElementById("attendanceRing");
+    if (attendanceRing) {
+        attendanceRing.style.background =
+            `conic-gradient(#0d6efd 0% ${attendancePercent}%, #e9ecef ${attendancePercent}% 100%)`;
+
+        attendanceRing.querySelector("span").textContent = attendancePercent + "%";
+    }
+
+    function openLeaveModal(leaveId) {
+        document.getElementById("leaveId").value = leaveId;
+        document.getElementById("remarks").value = "";
+        new bootstrap.Modal(document.getElementById("leaveModal")).show();
+    }
+
+    function submitLeave(action) {
+        const leaveId = document.getElementById("leaveId").value;
+        const remarks = document.getElementById("remarks").value.trim();
+
+        if (!remarks) { alert("Remarks are required"); return; }
+
+        fetch(`/leave/approve-reject/${leaveId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({ status: action, remarks: remarks })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) { location.reload(); }
+                else { alert(data.message); }
+            });
+    }
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+<script>
+    // Initialize Swiper
+    var swiper = new Swiper(".mySwiper", {
+        effect: "coverflow",
+        grabCursor: true,
+        centeredSlides: true,
+        slidesPerView: 'auto',
+        spaceBetween: 30,
+        coverflowEffect: {
+            rotate: 50,
+            stretch: 0,
+            depth: 200,
+            modifier: 1,
+            slideShadows: true,
+        },
+        pagination: {
+            el: ".swiper-pagination",
+            clickable: true,
+        },
+        navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+        },
+    });
+</script>
+<script>
+    (function () {
+        const onTime = {{ on_time }};
+    const lateIn = {{ late_in }};
+    const notYet = {{ not_yet_in }};
+    const onLeave = {{ on_leave }};
+    const whoInTotal = onTime + lateIn + notYet + onLeave;
+
+    const whoInRing = document.getElementById("whoInRing");
+    if (!whoInRing) return;
+
+    if (whoInTotal === 0) {
+        // No one in, show empty ring
+        whoInRing.style.background = "#e9ecef";
+        return;
+    }
+
+    const p1 = (onTime / whoInTotal) * 360;
+    const p2 = p1 + (lateIn / whoInTotal) * 360;
+    const p3 = p2 + (notYet / whoInTotal) * 360;
+
+    whoInRing.style.background = `
+            conic-gradient(
+                #6ee7b7 0deg ${p1}deg,
+                #fdba74 ${p1}deg ${p2}deg,
+                #fb7185 ${p2}deg ${p3}deg,
+                #cbd5e1 ${p3}deg 360deg
+            )
+        `;
+    }) ();
+</script>
+
+
+{% endblock %}

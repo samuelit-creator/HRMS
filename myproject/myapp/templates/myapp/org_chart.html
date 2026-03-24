@@ -1,0 +1,554 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<style>
+    :root {
+        --chart-bg: #f8fafc;
+        --line-color: #cbd5e1;
+        --card-bg: #ffffff;
+        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        --accent-gradient: linear-gradient(135deg, #ec4899 0%, #d946ef 100%);
+        --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --shadow-node: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --shadow-active: 0 8px 24px rgba(79, 70, 229, 0.25);
+    }
+
+    /* ===== SEARCH & CONTROLS ===== */
+    .chart-header {
+        position: fixed;
+        top: 88px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        width: 100%;
+        max-width: 500px;
+        padding: 0 20px;
+    }
+
+    .search-container {
+        display: flex;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--border);
+        border-radius: 50px;
+        padding: 8px 16px;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+    }
+
+    .search-container:focus-within {
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+        width: 110%;
+    }
+
+    .search-container input {
+        border: none;
+        background: transparent;
+        flex: 1;
+        padding: 8px;
+        outline: none;
+        font-weight: 500;
+        color: var(--text-main);
+    }
+
+    .search-container i {
+        display: flex;
+        align-items: center;
+        color: var(--text-muted);
+        font-size: 18px;
+    }
+
+    .chart-controls {
+        position: fixed;
+        bottom: 32px;
+        right: 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 1000;
+    }
+
+    .control-btn {
+        width: 44px;
+        height: 44px;
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        color: var(--text-main);
+        font-size: 20px;
+    }
+
+    .control-btn:hover {
+        background: #f1f5f9;
+        transform: translateY(-2px);
+        color: var(--primary);
+    }
+
+    /* ===== WRAPPERS ===== */
+    .org-wrapper {
+        width: 100%;
+        height: calc(100vh - 120px);
+        overflow: hidden;
+        position: relative;
+        background: var(--chart-bg);
+        cursor: grab;
+    }
+
+    .org-wrapper:active {
+        cursor: grabbing;
+    }
+
+    #org-canvas {
+        display: inline-block;
+        padding: 100px;
+        transform-origin: 0 0;
+        transition: transform 0.1s ease-out;
+    }
+
+    /* ===== NODES & CARDS ===== */
+    .org-tree {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+    }
+
+    .node-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
+
+    .emp-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 16px;
+        width: 240px;
+        box-shadow: var(--shadow-node);
+        border: 2px solid transparent;
+        transition: var(--transition);
+        display: flex;
+        gap: 16px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .emp-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+    }
+
+    .emp-card.highlighted {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-active);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .emp-avatar {
+        width: 48px;
+        height: 48px;
+        overflow: hidden;
+        background: var(--primary-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .emp-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .emp-info {
+        overflow: hidden;
+    }
+
+    .emp-name {
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--text-main);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .emp-role {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 500;
+        margin-top: 2px;
+    }
+
+    .emp-dept {
+        font-size: 11px;
+        color: var(--primary);
+        background: #eef2ff;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-top: 6px;
+        display: inline-block;
+        font-weight: 600;
+    }
+
+    .emp-id {
+        font-size: 10px;
+        color: #94a3b8;
+        margin-top: 4px;
+    }
+
+    /* ===== CONNECTORS ===== */
+    .org-children {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        position: relative;
+        padding-top: 40px;
+    }
+
+    /* Horizontal line */
+    .org-children::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: var(--line-color);
+    }
+
+    .org-children > .node-container::before {
+        content: "";
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        width: 2px;
+        height: 40px;
+        background: var(--line-color);
+    }
+
+    /* Remove edge connectors */
+    .org-children > .node-container:first-child::before {
+        height: 42px;
+        top: -42px;
+        border-radius: 4px 0 0 0;
+    }
+
+    /* Root special case */
+    .org-root {
+        padding-bottom: 40px;
+        position: relative;
+    }
+
+    .org-root::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 2px;
+        height: 40px;
+        background: var(--line-color);
+    }
+
+    /* ===== MINIMAP ===== */
+    #minimap {
+        position: fixed;
+        bottom: 90px;
+        right: 32px;
+        width: 180px;
+        height: 120px;
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        z-index: 999;
+        cursor: pointer;
+    }
+
+    #minimap-canvas {
+        width: 100%;
+        height: 100%;
+        opacity: 0.6;
+    }
+
+    #minimap-viewport {
+        position: absolute;
+        border: 2px solid var(--primary);
+        background: rgba(99, 102, 241, 0.1);
+        pointer-events: none;
+    }
+
+    /* Vertical Mode for leaf nodes */
+    .org-children.vertical {
+        flex-direction: column;
+        align-items: center;
+        padding-top: 30px;
+        gap: 0;
+    }
+
+    .org-children.vertical::before {
+        left: 50%;
+        width: 2px;
+        height: 100%;
+        top: 0;
+        transform: translateX(-50%);
+    }
+
+    .org-children.vertical > .node-container {
+        padding: 10px 0;
+    }
+
+    .org-children.vertical > .node-container::before {
+        display: none;
+    }
+
+    /* Hide the horizontal connector bar for vertical groups */
+    .org-children.vertical::before {
+        width: 2px;
+        left: 50%;
+        right: auto;
+    }
+
+    /* Level-based Coloring */
+    .emp-card.level-0, .org-root .emp-card { border-color: #6366f1; }
+    .emp-card.level-0 .emp-avatar, .org-root .emp-avatar { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+    
+    .emp-card.level-1 { border-color: #ec4899; }
+    .emp-card.level-1 .emp-avatar { background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%); }
+    
+    .emp-card.level-2 { border-color: #10b981; }
+    .emp-card.level-2 .emp-avatar { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    
+    .emp-card.level-3 { border-color: #f59e0b; }
+    .emp-card.level-3 .emp-avatar { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    
+    .emp-card.level-4 { border-color: #8b5cf6; }
+    .emp-card.level-4 .emp-avatar { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+    
+    .emp-card.level-5 { border-color: #06b6d4; }
+    .emp-card.level-5 .emp-avatar { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+
+</style>
+
+<div class="chart-header">
+    <div class="search-container">
+        <i class="bi bi-search"></i>
+        <input type="text" id="nodeSearch" placeholder="Search by name, ID or department..." autocomplete="off">
+        <i class="bi bi-x-circle-fill" id="clearSearch" style="cursor: pointer; display: none;"></i>
+    </div>
+</div>
+
+<div class="org-wrapper" id="orgViewport">
+    <div id="org-canvas">
+        {% for root in roots %}
+            <div class="node-container">
+                <div class="org-root">
+                    <div class="emp-card level-{{ root.level }}" id="card-{{ root.code }}" data-name="{{ root.name|lower }}" data-code="{{ root.code|lower }}" data-dept="{{ root.department|lower }}" data-level="{{ root.level }}">
+                        <div class="emp-avatar">
+                            {% if root.photo %}
+                                <img src="data:image/jpeg;base64,{{ root.photo }}" alt="{{ root.name }}">
+                            {% else %}
+                                {{ root.name|slice:":1" }}
+                            {% endif %}
+                        </div>
+                        <div class="emp-info">
+                            <div class="emp-name">{{ root.name }}</div>
+                            <div class="emp-role">{{ root.designation }}</div>
+                            <div class="emp-dept">{{ root.department }}</div>
+                            <div class="emp-id">#{{ root.code }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="org-tree">
+                    {% include "myapp/child_node.html" with node=root %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="chart-controls">
+    <button class="control-btn" id="zoomIn" title="Zoom In"><i class="bi bi-plus-lg"></i></button>
+    <button class="control-btn" id="zoomOut" title="Zoom Out"><i class="bi bi-dash-lg"></i></button>
+    <button class="control-btn" id="zoomReset" title="Reset View"><i class="bi bi-arrows-fullscreen"></i></button>
+</div>
+
+<!-- MINIMAP -->
+<div id="minimap">
+    <div id="minimap-viewport"></div>
+</div>
+
+<script>
+    const viewport = document.getElementById("orgViewport");
+    const canvas = document.getElementById("org-canvas");
+    const searchInput = document.getElementById("nodeSearch");
+    const clearBtn = document.getElementById("clearSearch");
+
+    let scale = 0.8;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let startX, startY;
+
+    // Apply vertical layout to leaf groups
+    window.addEventListener('DOMContentLoaded', () => {
+        const groups = document.querySelectorAll('.org-children');
+        groups.forEach(group => {
+            // A group is a leaf group if none of its children have children
+            const childGroups = group.querySelectorAll('.org-children');
+            if (childGroups.length === 0 && group.children.length > 3) {
+                group.classList.add('vertical');
+            }
+        });
+    });
+
+    // Initial center
+    window.addEventListener('load', () => {
+        const vw = viewport.clientWidth;
+        const vh = viewport.clientHeight;
+        const cw = canvas.offsetWidth;
+        panX = (vw - cw * scale) / 2;
+        panY = 50;
+        updateTransform();
+    });
+
+    function updateTransform() {
+        canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        updateMiniMap();
+    }
+
+    /* ===== PANNING ===== */
+    viewport.addEventListener("mousedown", e => {
+        if (e.target.closest('.control-btn') || e.target.closest('.search-container')) return;
+        isDragging = true;
+        startX = e.clientX - panX;
+        startY = e.clientY - panY;
+    });
+
+    window.addEventListener("mousemove", e => {
+        if (!isDragging) return;
+        panX = e.clientX - startX;
+        panY = e.clientY - startY;
+        updateTransform();
+    });
+
+    window.addEventListener("mouseup", () => isDragging = false);
+
+    /* ===== ZOOM ===== */
+    viewport.addEventListener("wheel", e => {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.05 : -0.05;
+        zoom(delta, e.clientX, e.clientY);
+    }, { passive: false });
+
+    function zoom(delta, centerX, centerY) {
+        const newScale = Math.min(Math.max(scale + delta, 0.2), 2);
+        
+        const rect = viewport.getBoundingClientRect();
+        const x = centerX - rect.left;
+        const y = centerY - rect.top;
+
+        panX -= (x - panX) * (newScale / scale - 1);
+        panY -= (y - panY) * (newScale / scale - 1);
+
+        scale = newScale;
+        updateTransform();
+    }
+
+    document.getElementById("zoomIn").onclick = () => zoom(0.1, viewport.clientWidth/2, viewport.clientHeight/2);
+    document.getElementById("zoomOut").onclick = () => zoom(-0.1, viewport.clientWidth/2, viewport.clientHeight/2);
+    document.getElementById("zoomReset").onclick = () => {
+        scale = 0.8;
+        panX = (viewport.clientWidth - canvas.offsetWidth * scale) / 2;
+        panY = 50;
+        updateTransform();
+    };
+
+    /* ===== SEARCH ===== */
+    searchInput.oninput = (e) => {
+        const val = e.target.value.toLowerCase();
+        const cards = document.querySelectorAll('.emp-card');
+        clearBtn.style.display = val ? 'block' : 'none';
+
+        cards.forEach(card => card.classList.remove('highlighted'));
+
+        if (!val) return;
+
+        const matches = Array.from(cards).filter(card => {
+            return card.dataset.name.includes(val) || 
+                   card.dataset.code.includes(val) || 
+                   card.dataset.dept.includes(val);
+        });
+
+        if (matches.length > 0) {
+            matches.forEach(card => card.classList.add('highlighted'));
+            if (matches.length === 1) {
+                centerOnNode(matches[0]);
+            }
+        }
+    };
+
+    clearBtn.onclick = () => {
+        searchInput.value = '';
+        searchInput.oninput({target: searchInput});
+        searchInput.focus();
+    };
+
+    function centerOnNode(node) {
+        const rect = node.getBoundingClientRect();
+        const viewRect = viewport.getBoundingClientRect();
+        
+        const nodeCenterX = rect.left + rect.width / 2;
+        const nodeCenterY = rect.top + rect.height / 2;
+
+        const viewCenterX = viewRect.left + viewRect.width / 2;
+        const viewCenterY = viewRect.top + viewRect.height / 2;
+
+        panX += (viewCenterX - nodeCenterX);
+        panY += (viewCenterY - nodeCenterY);
+        
+        updateTransform();
+    }
+
+    /* ===== MINIMAP ===== */
+    const mini = document.getElementById("minimap");
+    const miniView = document.getElementById("minimap-viewport");
+
+    function updateMiniMap() {
+        const vw = viewport.clientWidth;
+        const vh = viewport.clientHeight;
+        const cw = canvas.scrollWidth;
+        const ch = canvas.scrollHeight;
+
+        const ratioX = mini.clientWidth / (cw * scale + Math.abs(panX) * 2);
+        const ratioY = mini.clientHeight / (ch * scale + Math.abs(panY) * 2);
+
+        // This is a simplified minimap for now
+        miniView.style.width = '20%';
+        miniView.style.height = '20%';
+    }
+
+</script>
+
+{% endblock %}

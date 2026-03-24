@@ -1,0 +1,113 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 3rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    .form-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #475569;
+    }
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        transition: all 0.2s;
+    }
+    .form-control:focus {
+        border-color: #2563eb;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    textarea.form-control {
+        min-height: 200px;
+        resize: vertical;
+    }
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    .btn {
+        flex: 1;
+        padding: 0.75rem;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+        text-decoration: none;
+    }
+    .btn-save {
+        background: #2563eb;
+        color: white;
+        border: none;
+    }
+    .btn-save:hover {
+        background: #1d4ed8;
+    }
+    .btn-cancel {
+        background: #f8fafc;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+    }
+    .btn-cancel:hover {
+        background: #f1f5f9;
+        color: #475569;
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-header">
+        <h1>{% if announcement %}Edit{% else %}New{% endif %} Announcement</h1>
+        <p class="text-muted">Broadcast important updates to the whole team.</p>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Holiday on Friday" value="{{ announcement.Title }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="content">Content</label>
+            <textarea id="content" name="content" class="form-control" placeholder="Write your announcement here..." required>{{ announcement.Content }}</textarea>
+            <small class="text-muted"><i class="bi bi-info-circle"></i> URLs will be automatically converted to clickable links.</small>
+        </div>
+
+        {% if announcement %}
+        <div class="form-group">
+            <div class="d-flex align-items: center; gap: 0.5rem;">
+                <input type="checkbox" id="is_active" name="is_active" {% if announcement.IsActive %}checked{% endif %}>
+                <label for="is_active" style="margin: 0;">Mark as Active</label>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <a href="{% url 'announcement_list' %}" class="btn btn-cancel">Cancel</a>
+            <button type="submit" class="btn btn-save">
+                {% if announcement %}Update{% else %}Create{% endif %} Announcement
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

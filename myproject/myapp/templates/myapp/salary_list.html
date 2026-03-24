@@ -1,0 +1,99 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<style>
+.salary-table th {
+    background: #0d6efd;
+    color: #fff;
+    white-space: nowrap;
+}
+.salary-table td {
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.badge-present { background:#d1fae5; color:#065f46; }
+.badge-absent { background:#fee2e2; color:#991b1b; }
+</style>
+
+<div class="container-fluid mt-4">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Salary Register</h4>
+
+        <form method="get" class="d-flex gap-2">
+            <select name="month" class="form-select form-select-sm">
+                {% for m, name in months %}
+                <option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>
+                    {{ name }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <select name="year" class="form-select form-select-sm">
+                {% for y in years %}
+                <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>
+                    {{ y }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <button class="btn btn-sm btn-primary">Go</button>
+        </form>
+    </div>
+
+    <!-- CYCLE INFO -->
+    <div class="alert alert-info py-2">
+        Salary Cycle: <strong>{{ cycle_start }}</strong> → <strong>{{ cycle_end }}</strong>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover salary-table">
+            <thead>
+                <tr>
+                    <th>Emp Code</th>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Gross</th>
+                    <th>Earned</th>
+                    <th>Present</th>
+                    <th>Absent</th>
+                    <th>PF</th>
+                    <th>ESI</th>
+                    <th>PT</th>
+                    <th>Net</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in employees %}
+                <tr>
+                    <td>{{ e.emp_code }}</td>
+                    <td>{{ e.name }}</td>
+                    <td>{{ e.department }}</td>
+                    <td>₹{{ e.total_gross }}</td>
+                    <td>₹{{ e.earned_gross }}</td>
+                    <td><span class="badge badge-present">{{ e.present_days }}</span></td>
+                    <td><span class="badge badge-absent">{{ e.absent_days }}</span></td>
+                    <td>₹{{ e.pf }}</td>
+                    <td>₹{{ e.esi }}</td>
+                    <td>₹{{ e.pt }}</td>
+                    <td><strong>₹{{ e.net_salary }}</strong></td>
+                    <td>
+                        <a href="{% url 'salary_detail' e.emp_code %}" class="btn btn-sm btn-outline-primary">View</a>
+                        <a href="{% url 'salary_edit' e.emp_code %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="11" class="text-center text-muted">No data</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,365 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<!-- BOOTSTRAP REQUIRED -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+/* ===== PAGE ===== */
+body {
+    background: #f4f7fb;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ===== CARD ===== */
+.page-wrapper {
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px 20px;
+}
+
+.card {
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 15px 40px rgba(0,0,0,.08);
+    overflow: hidden;
+}
+
+/* ===== HEADER ===== */
+.card-header {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    padding: 20px 30px;
+}
+
+.card-header h4 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* ===== FORM ===== */
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-control,
+.form-select {
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+    border-color: #2563eb;
+}
+
+/* ===== MULTI SELECT ===== */
+.multi-actions {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.multi-actions span {
+    cursor: pointer;
+    color: #2563eb;
+    font-weight: 500;
+}
+
+/* ===== FOOTER ===== */
+.card-footer {
+    background: #f8fafc;
+    padding: 18px 30px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    position: sticky;
+    bottom: 0;
+}
+
+/* ===== BUTTONS ===== */
+.btn-primary {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border: none;
+    border-radius: 12px;
+    padding: 10px 26px;
+}
+
+.btn-secondary {
+    border-radius: 12px;
+    padding: 10px 26px;
+}
+
+/* ===== BADGE ===== */
+.badge-soft {
+    background: rgba(255,255,255,.2);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+.cursor-pointer { cursor: pointer; }
+.dropdown-toggle::after { float:right; margin-top:8px; }
+
+</style>
+
+<div class="page-wrapper">
+    <div class="card">
+
+        <!-- HEADER -->
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4>Team Head Approval</h4>
+            <span class="badge-soft">Holiday / Week-Off</span>
+        </div>
+
+        <!-- BODY -->
+        <div class="card-body p-4">
+            <form method="post" id="offForm">
+                {% csrf_token %}
+
+                <div class="row g-4">
+
+                    <!-- TEAM -->
+                    <div class="col-md-6">
+    <label class="form-label">Teams</label>
+
+    <div class="dropdown w-100">
+        <button class="btn btn-light w-100 text-start dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown">
+            <span id="teamSelectedText">Select Teams</span>
+        </button>
+
+        <div class="dropdown-menu w-100 p-3 shadow-lg"
+     style="max-height: 320px; overflow-y: auto;">
+            <div class="d-flex justify-content-between mb-2 small">
+                <span class="text-primary cursor-pointer" onclick="selectAllTeams()">Select All</span>
+                <span class="text-danger cursor-pointer" onclick="clearAllTeams()">Clear</span>
+            </div>
+
+            
+
+            {% for t in teams %}
+            <div class="form-check">
+                <input class="form-check-input team-check" type="checkbox" value="{{ t }}">
+                <label class="form-check-label">{{ t }}</label>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Hidden container -->
+    <div id="teamHiddenInputs"></div>
+</div>
+
+
+                    <!-- EMPLOYEE -->
+                    <div class="col-md-6">
+    <label class="form-label">Employees</label>
+
+    <div class="dropdown w-100">
+        <button class="btn btn-light w-100 text-start dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown">
+            <span id="empSelectedText">Select Employees</span>
+        </button>
+
+        <div class="dropdown-menu w-100 p-3 shadow-lg" style="max-height: 320px; overflow-y:auto;">
+            <div class="d-flex justify-content-between mb-2 small">
+                <span class="text-primary cursor-pointer" onclick="selectAllEmployees()">Select All</span>
+                <span class="text-danger cursor-pointer" onclick="clearAllEmployees()">Clear</span>
+            </div>
+
+            
+
+            {% for emp in employees %}
+            <div class="form-check emp-row" data-team="{{ emp.2 }}">
+                <input class="form-check-input emp-check"
+                       type="checkbox"
+                       value="{{ emp.0 }}">
+                <label class="form-check-label">
+                    {{ emp.1 }} ({{ emp.0 }})
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Hidden container -->
+    <div id="empHiddenInputs"></div>
+</div>
+
+                    <!-- FROM DATE -->
+                    <div class="col-md-3">
+                        <label class="form-label">From Date</label>
+                        <input type="date" name="from_date" id="fromDate" class="form-control" required>
+                    </div>
+
+                    <!-- TO DATE -->
+                    <div class="col-md-3">
+                        <label class="form-label">To Date</label>
+                        <input type="date" name="to_date" id="toDate" class="form-control" required>
+                    </div>
+
+                    <!-- DAY TYPE -->
+                    <div class="col-md-3">
+                        <label class="form-label">Day Type</label>
+                        <select name="day_type" class="form-select" required>
+                            <option value="Holiday">Holiday</option>
+                            <option value="Weekly Off">Weekly Off</option>
+                            <option value="Absent">Absent</option>
+                            <option value="Present">Present</option>
+                            <option value="Comp-Off">Comp-Off</option>
+                        </select>
+                    </div>
+
+                    <!-- REASON -->
+                    <div class="col-md-3">
+                        <label class="form-label">Reason</label>
+                        <input type="text" name="reason" class="form-control" placeholder="Optional">
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="card-footer">
+            <a href="{% url 'employee_off_list' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" form="offForm" class="btn btn-primary">
+                Save Changes
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const teamSelect = document.getElementById("teamSelect");
+const empSelect = document.getElementById("employeeSelect");
+const fromDate = document.getElementById("fromDate");
+const toDate = document.getElementById("toDate");
+
+/* TEAM FILTER */
+teamSelect.addEventListener("change", () => {
+    const teams = Array.from(teamSelect.selectedOptions).map(o => o.value);
+
+    for (let opt of empSelect.options) {
+        if (opt.value === "ALL") {
+            opt.hidden = false;
+            continue;
+        }
+        opt.hidden = !(teams.includes("ALL") || teams.includes(opt.dataset.team));
+    }
+});
+
+/* SELECT ALL / CLEAR */
+function selectAll(id) {
+    const el = document.getElementById(id);
+    for (let opt of el.options) {
+        opt.selected = true;
+        opt.hidden = false;
+    }
+}
+
+function clearAll(id) {
+    const el = document.getElementById(id);
+    for (let opt of el.options) {
+        opt.selected = false;
+    }
+}
+
+/* DATE VALIDATION */
+document.getElementById("offForm").addEventListener("submit", e => {
+    if (fromDate.value > toDate.value) {
+        alert("From Date cannot be later than To Date");
+        e.preventDefault();
+    }
+});
+</script>
+<script>
+/* ===== TEAM LOGIC ===== */
+const teamChecks = document.querySelectorAll(".team-check");
+const teamText = document.getElementById("teamSelectedText");
+const teamHidden = document.getElementById("teamHiddenInputs");
+
+teamChecks.forEach(cb => cb.addEventListener("change", updateTeams));
+
+function updateTeams() {
+    let selected = [];
+    teamHidden.innerHTML = "";
+
+    teamChecks.forEach(cb => {
+        if (cb.checked) {
+            selected.push(cb.value);
+            teamHidden.innerHTML +=
+                `<input type="hidden" name="teams[]" value="${cb.value}">`;
+        }
+    });
+
+    teamText.innerText = selected.length ? selected.join(", ") : "Select Teams";
+    filterEmployees(selected);
+}
+
+function selectAllTeams() {
+    teamChecks.forEach(cb => cb.checked = true);
+    updateTeams();
+}
+
+function clearAllTeams() {
+    teamChecks.forEach(cb => cb.checked = false);
+    updateTeams();
+}
+
+/* ===== EMPLOYEE FILTER ===== */
+function filterEmployees(teams) {
+    document.querySelectorAll(".emp-row").forEach(row => {
+        if (teams.includes("ALL") || teams.includes(row.dataset.team)) {
+            row.style.display = "block";
+        } else {
+            row.style.display = "none";
+            row.querySelector("input").checked = false;
+        }
+    });
+    updateEmployees();
+}
+
+/* ===== EMPLOYEE LOGIC ===== */
+const empChecks = document.querySelectorAll(".emp-check");
+const empText = document.getElementById("empSelectedText");
+const empHidden = document.getElementById("empHiddenInputs");
+
+empChecks.forEach(cb => cb.addEventListener("change", updateEmployees));
+
+function updateEmployees() {
+    let selected = [];
+    empHidden.innerHTML = "";
+
+    empChecks.forEach(cb => {
+        if (cb.checked) {
+            selected.push(cb.value);
+            empHidden.innerHTML +=
+                `<input type="hidden" name="employee_codes[]" value="${cb.value}">`;
+        }
+    });
+
+    empText.innerText = selected.length
+        ? `${selected.length} Selected`
+        : "Select Employees";
+}
+
+function selectAllEmployees() {
+    empChecks.forEach(cb => cb.checked = true);
+    updateEmployees();
+}
+
+function clearAllEmployees() {
+    empChecks.forEach(cb => cb.checked = false);
+    updateEmployees();
+}
+</script>
+
+{% endblock %}

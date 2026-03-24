@@ -1,0 +1,393 @@
+{% extends "myapp/base.html" %}
+
+{% block title %}MIS Dashboard{% endblock %}
+{% block page_title %}MIS Performance Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #2af598 0%, #009efd 100%);
+        --accent-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        --card-bg: rgba(255, 255, 255, 0.95);
+    }
+
+    .dashboard-container {
+        padding: 20px;
+        background: #f8f9fa;
+    }
+
+    /* Stat Cards */
+    .stat-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+    }
+
+    .card-fpc::before {
+        background: var(--primary-gradient);
+    }
+
+    .card-audit::before {
+        background: var(--secondary-gradient);
+    }
+
+    .card-quality::before {
+        background: var(--accent-gradient);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+        margin-bottom: 15px;
+    }
+
+    .icon-fpc {
+        background: var(--primary-gradient);
+    }
+
+    .icon-audit {
+        background: var(--secondary-gradient);
+    }
+
+    .icon-quality {
+        background: var(--accent-gradient);
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 5px;
+        color: #2d3436;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #636e72;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Data Table */
+    .data-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .table th {
+        background: #f1f3f5;
+        font-weight: 600;
+        color: #495057;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        border: none;
+        padding: 15px;
+    }
+
+    .table td {
+        padding: 15px;
+        vertical-align: middle;
+        font-size: 14px;
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    .badge-premium {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 12px;
+    }
+
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+        margin-top: 5px;
+    }
+
+    .detailed-stats {
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .detailed-stats span {
+        opacity: 0.8;
+    }
+
+    .detailed-stats strong {
+        color: #2d3436;
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark">MIS Performance</h2>
+            <p class="text-muted">Welcome back, {{ emp_name }}</p>
+        </div>
+        {% if request.session.allocate_position == 'IT' %}
+        <div>
+            <a href="{% url 'upload_master_data' %}" class="btn btn-outline-primary rounded-pill">
+                <i class="fas fa-upload me-2"></i> Upload Data
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-bar">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label small fw-bold">From Date</label>
+                <input type="date" name="from_date" class="form-control" value="{{ from_date }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold">To Date</label>
+                <input type="date" name="to_date" class="form-control" value="{{ to_date }}">
+            </div>
+            
+            {% if tl_list %}
+            <div class="col-md-2">
+                <label class="form-label small fw-bold">TL's Name</label>
+                <select name="tl_code" class="form-select" onchange="this.form.submit()">
+                    <option value="">All TLs</option>
+                    {% for tl in tl_list %}
+                    <option value="{{ tl.code }}" {% if tl.code == selected_tl_code %}selected{% endif %}>{{ tl.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            {% if user_list %}
+            <div class="col-md-2">
+                <label class="form-label small fw-bold">User's Name</label>
+                <select name="user_id" class="form-select">
+                    <option value="">All Users</option>
+                    {% for u in user_list %}
+                    <option value="{{ u.code }}" {% if u.code == selected_user_id %}selected{% endif %}>{{ u.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-2"></i> Filter
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a href="{% url 'export_mis_data' %}?from_date={{ from_date }}&to_date={{ to_date }}&tl_code={{ selected_tl_code }}&user_id={{ selected_user_id }}" class="btn btn-success w-100">
+                    <i class="fas fa-file-excel me-2"></i> Export Excel
+                </a>
+            </div>
+            <div class="col-md-2">
+                <a href="{% url 'mis_dashboard' %}" class="btn btn-light w-100">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row mb-4 g-4">
+        <div class="col-md-3">
+            <div class="stat-card card-fpc">
+                <div class="stat-icon icon-fpc">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stat-value">{{ summary.fpc_count|default:0 }}</div>
+                <div class="stat-label mb-3">Total FPC Production</div>
+                <div class="detailed-stats small text-muted border-top pt-2">
+                    <div class="d-flex justify-content-between"><span>Count:</span> <strong>
+                            {{ summary.fpc_count }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Page:</span> <strong>
+                            {{ summary.fpc_page }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Icd:</span> <strong>
+                            {{ summary.fpc_icd }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between"><span>Target:</span> <strong>
+                            {{ summary.fpc_target }}</strong></div>
+                    <div class="d-flex justify-content-between text-primary"><span>Production %:</span> <strong>
+                            {{ summary.fpc_avg|floatformat:2 }}%</strong></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card card-audit">
+                <div class="stat-icon icon-audit">
+                    <i class="fas fa-check-double"></i>
+                </div>
+                <div class="stat-value">{{ summary.audit_count|default:0 }}</div>
+                <div class="stat-label mb-3">Total Audit Done</div>
+                <div class="detailed-stats small text-muted border-top pt-2">
+                    <div class="d-flex justify-content-between"><span>Count:</span> <strong>
+                            {{ summary.audit_count }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Page:</span> <strong>
+                            {{ summary.audit_page }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Icd:</span> <strong>
+                            {{ summary.audit_icd }}</strong></div>
+                    <div class="d-flex justify-content-between text-danger"><span>Error:</span> <strong>
+                            {{ summary.audit_error }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Target:</span> <strong>
+                            {{ summary.audit_target }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>U1%:</span> <strong>
+                            {{ summary.audit_u1|floatformat:2 }}%</strong></div>
+                    <div class="d-flex justify-content-between text-success"><span>Audit %:</span> <strong>
+                            {{ summary.audit_avg|floatformat:2 }}%</strong></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card card-quality">
+                <div class="stat-icon icon-quality">
+                    <i class="fas fa-award"></i>
+                </div>
+                <div class="stat-value">{{ summary.quality_avg|floatformat:2 }}%</div>
+                <div class="stat-label mb-3">Avg Quality QA%</div>
+                <div class="detailed-stats small text-muted border-top pt-2">
+                    <div class="d-flex justify-content-between"><span>Chart:</span> <strong>
+                            {{ summary.quality_chart }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Icd:</span> <strong>
+                            {{ summary.quality_icd }}</strong></div>
+                    <div class="d-flex justify-content-between text-danger"><span>Errors:</span> <strong>
+                            {{ summary.quality_error }}</strong></div>
+                    <div class="d-flex justify-content-between text-info"><span>EFR%:</span> <strong>
+                            {{ summary.quality_efr|floatformat:2 }}%</strong></div>
+                    <div class="d-flex justify-content-between text-primary"><span>Quality %:</span> <strong>
+                            {{ summary.quality_avg|floatformat:2 }}%</strong></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card card-fpc"
+                style="--primary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="stat-value">{{ summary.assess_avg|floatformat:2 }}%</div>
+                <div class="stat-label mb-3">Avg Assessment%</div>
+                <div class="detailed-stats small text-muted border-top pt-2">
+                    <div class="d-flex justify-content-between"><span>Ques:</span> <strong>
+                            {{ summary.assess_ques }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Correct:</span> <strong>
+                            {{ summary.assess_correct }}</strong></div>
+                    <div class="d-flex justify-content-between text-primary"><span>Assessment %:</span> <strong>
+                            {{ summary.assess_avg|floatformat:2 }}%</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- table Section -->
+    <div class="data-card">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold"><i class="fas fa-list me-2"></i> Performance Records</h5>
+            <span class="badge bg-light text-dark">{{ records.count }} Records Found</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Project</th>
+                        {% if is_team_lead %}<th>Employee</th>{% endif %}
+                        <th>FPC Achiv%</th>
+                        <th>Audit Achiv%</th>
+                        <th>Quality QA%</th>
+                        <th>Assessment%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td class="fw-bold">{{ record.Date|date:"d M, Y" }}</td>
+                        <td>{{ record.ProjectName }}</td>
+                        {% if is_team_lead %}<td>{{ record.MLV_Name }} ({{ record.MLV_ID }})</td>{% endif %}
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="me-2">{{ record.FPC_AchievedPercent|floatformat:2 }}%</span>
+                                <div class="progress flex-grow-1" style="width: 60px;">
+                                    <div class="progress-bar bg-primary"
+                                        style="width: {{ record.FPC_AchievedPercent|default:0 }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="me-2">{{ record.Audit_AchievedPercent|floatformat:2 }}%</span>
+                                <div class="progress flex-grow-1" style="width: 60px;">
+                                    <div class="progress-bar bg-success"
+                                        style="width: {{ record.Audit_AchievedPercent|default:0 }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="me-2">{{ record.Quality_QAPercent|floatformat:2 }}%</span>
+                                <div class="progress flex-grow-1" style="width: 60px;">
+                                    <div class="progress-bar bg-success" style="width: {{ record.Quality_QAPercent|default:0 }}%">
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="me-2">{{ record.Assessment_Percent|floatformat:2 }}%</span>
+                                <div class="progress flex-grow-1" style="width: 60px;">
+                                    <div class="progress-bar bg-success"
+                                        style="width: {{ record.Assessment_Percent|default:0 }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="fas fa-info-circle fa-3x text-light mb-3"></i>
+                            <p class="text-muted">No records found for the selected criteria.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

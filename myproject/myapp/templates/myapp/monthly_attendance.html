@@ -1,0 +1,358 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<style>
+    /* ===== Page Wrapper ===== */
+    .attendance-container {
+        background: #f4f6f9;
+        padding: 20px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* ===== Page Title ===== */
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #1a202c;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* ===== Filter Card ===== */
+    .filter-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        align-items: flex-end;
+    }
+
+    .filter-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #4a5568;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        font-size: 14px;
+        color: #2d3748;
+        background-color: #f7fafc;
+        transition: border-color 0.2s;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+        border-color: #3182ce;
+        outline: none;
+        background-color: #fff;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: #3182ce;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #2b6cb0;
+        box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
+    }
+
+    .btn-success {
+        background: #38a169;
+        color: #fff;
+    }
+
+    .btn-success:hover {
+        background: #2f855a;
+        box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+    }
+
+    /* ===== Table Card ===== */
+    .table-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .table-scroll {
+        overflow: auto;
+        max-height: 70vh;
+    }
+
+    .attendance-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 13px;
+    }
+
+    .attendance-table thead {
+        background: #f8fafc;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }
+
+    .attendance-table th {
+        padding: 12px 15px;
+        text-align: center;
+        color: #4a5568;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        border-bottom: 2px solid #edf2f7;
+        white-space: nowrap;
+    }
+
+    /* Sticky Columns */
+    .sticky-col {
+        position: sticky;
+        left: 0;
+        background: #fff;
+        z-index: 10;
+        border-right: 1px solid #edf2f7;
+    }
+
+    .sticky-col-2 {
+        position: sticky;
+        left: 80px;
+        background: #fff;
+        z-index: 10;
+        border-right: 1px solid #edf2f7;
+    }
+
+    .sticky-col-3 {
+        position: sticky;
+        left: 200px;
+        background: #fff;
+        z-index: 10;
+        border-right: 1px solid #edf2f7;
+    }
+
+    .attendance-table thead th.sticky-col,
+    .attendance-table thead th.sticky-col-2,
+    .attendance-table thead th.sticky-col-3 {
+        z-index: 30;
+        background: #f8fafc;
+    }
+
+    .attendance-table td {
+        padding: 10px 15px;
+        border-bottom: 1px solid #edf2f7;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .attendance-table tbody tr:hover td {
+        background: #f1f5f9;
+    }
+
+    .attendance-table tbody tr:hover .sticky-col,
+    .attendance-table tbody tr:hover .sticky-col-2,
+    .attendance-table tbody tr:hover .sticky-col-3 {
+        background: #f1f5f9;
+    }
+
+    /* ===== Status Colors ===== */
+    .status-p {
+        background-color: #c6efce;
+        color: #006100;
+        font-weight: bold;
+        border-radius: 4px;
+    }
+
+    .status-a {
+        background-color: #ffc7ce;
+        color: #9c0006;
+        font-weight: bold;
+        border-radius: 4px;
+    }
+
+    .status-h {
+        background-color: #ebf8ff;
+        color: #2c5282;
+        font-weight: bold;
+        border-radius: 4px;
+    }
+
+    .status-al {
+        background-color: #feebc8;
+        color: #7b341e;
+        font-weight: bold;
+        border-radius: 4px;
+    }
+
+    .status-l {
+        background-color: #fed7d7;
+        color: #822727;
+        font-weight: bold;
+        border-radius: 4px;
+    }
+
+    .status-cell {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        font-size: 11px;
+    }
+
+    /* ===== Summary Stats ===== */
+    .summary-val {
+        font-weight: 700;
+        color: #2d3748;
+    }
+</style>
+
+<div class="attendance-container">
+    <div class="page-title">
+        <span>📅 Monthly Attendance Report</span>
+    </div>
+
+    <!-- ===== Filters ===== -->
+    <div class="filter-card">
+        <form method="get" class="filter-grid">
+            <div class="filter-group">
+                <label>Year</label>
+                <select name="year">
+                    {% for y in years %}
+                    <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Month</label>
+                <select name="month">
+                    <option value="1" {% if selected_month == 1 %}selected{% endif %}>January</option>
+                    <option value="2" {% if selected_month == 2 %}selected{% endif %}>February</option>
+                    <option value="3" {% if selected_month == 3 %}selected{% endif %}>March</option>
+                    <option value="4" {% if selected_month == 4 %}selected{% endif %}>April</option>
+                    <option value="5" {% if selected_month == 5 %}selected{% endif %}>May</option>
+                    <option value="6" {% if selected_month == 6 %}selected{% endif %}>June</option>
+                    <option value="7" {% if selected_month == 7 %}selected{% endif %}>July</option>
+                    <option value="8" {% if selected_month == 8 %}selected{% endif %}>August</option>
+                    <option value="9" {% if selected_month == 9 %}selected{% endif %}>September</option>
+                    <option value="10" {% if selected_month == 10 %}selected{% endif %}>October</option>
+                    <option value="11" {% if selected_month == 11 %}selected{% endif %}>November</option>
+                    <option value="12" {% if selected_month == 12 %}selected{% endif %}>December</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Department</label>
+                <input type="text" name="department" value="{{ dept_filter|default:'' }}" placeholder="All Departments">
+            </div>
+
+            <div class="filter-group">
+                <label>Emp Code</label>
+                <input type="text" name="emp_code" value="{{ emp_code_filter|default:'' }}" placeholder="Search Code">
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">
+                    🔍 Apply Filter
+                </button>
+                <button type="button" class="btn btn-success" onclick="exportToExcel()">
+                    📊 Export Excel
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ===== Table ===== -->
+    <div class="table-card">
+        <div class="table-scroll">
+            <table class="attendance-table" id="attendanceTable">
+                <thead>
+                    <tr>
+                        <th class="sticky-col" style="min-width: 80px;">Code</th>
+                        <th class="sticky-col-2" style="min-width: 150px;">Employee Name</th>
+                        <th class="sticky-col-3" style="min-width: 120px;">Department</th>
+                        {% for day in day_list %}
+                        <th style="min-width: 45px;">{{ day|date:"d" }}<br><small>{{ day|date:"D" }}</small></th>
+                        {% endfor %}
+                        <th style="background: #f7fafc; font-weight: 800; border-left: 2px solid #e2e8f0;">Pay Days</th>
+                        <th style="background: #f7fafc; font-weight: 800;">Present Days</th>
+                        <th style="background: #f7fafc; font-weight: 800;">Leave Balance</th>
+                        <th style="background: #f7fafc; font-weight: 800;">Working Hrs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_data %}
+                    <tr>
+                        <td class="sticky-col">{{ row.emp_code }}</td>
+                        <td class="sticky-col-2" style="text-align: left;">{{ row.emp_name }}</td>
+                        <td class="sticky-col-3" style="text-align: left;">{{ row.department }}</td>
+                        {% for status in row.days %}
+                        <td>
+                            <div
+                                class="status-cell {% if status == 'P' %}status-p{% elif status == 'A' %}status-a{% elif status == 'H' %}status-h{% elif status == 'AL' %}status-al{% elif status == 'L' %}status-l{% endif %}">
+                                {{ status }}
+                            </div>
+                        </td>
+                        {% endfor %}
+                        <td class="summary-val" style="border-left: 2px solid #e2e8f0; background: #fdfdfd;">
+                            {{ row.pay_count }}</td>
+                        <td class="summary-val" style="border-left: 2px solid #e2e8f0; background: #fdfdfd;">
+                            {{ row.present_count }}</td>
+                        <td class="summary-val"
+                            style="border-left: 2px solid #e2e8f0; background: #fdfdfd; font-weight: bold; color: #2ec4b6;">
+                            {{ row.leave_balance }}</td>
+                        <td class="summary-val" style="background: #fdfdfd;">{{ row.working_hours }}h</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+<script>
+    function exportToExcel() {
+        const table = document.getElementById("attendanceTable");
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Monthly Attendance" });
+        const fileName = "Monthly_Attendance_{{ selected_month }}_{{ selected_year }}.xlsx";
+        XLSX.writeFile(wb, fileName);
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<style>
+/* ===== BASE ===== */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #f4f7fb;
+}
+
+.page-wrapper {
+    max-width: 600px;
+    margin: auto;
+    padding: 40px 20px;
+}
+
+/* ===== CARD ===== */
+.card {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    padding: 30px;
+}
+
+/* ===== HEADER ===== */
+.card h2 {
+    margin-bottom: 25px;
+    color: #1f2937;
+    text-align: center;
+}
+
+/* ===== FORM ===== */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+}
+
+/* ===== BUTTONS ===== */
+.actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 25px;
+}
+
+.btn-primary {
+    flex: 1;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(37,99,235,0.3);
+}
+
+.btn-secondary {
+    flex: 1;
+    text-align: center;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    color: #374151;
+    background: #f1f5f9;
+    transition: 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+}
+</style>
+
+<div class="page-wrapper">
+    <div class="card">
+        <h2>Add Holiday / Week-Off</h2>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="date" required>
+            </div>
+
+            <div class="form-group">
+                <label>Day Type</label>
+                <select name="day_type" required>
+                    <option value="Holiday">Holiday</option>
+                    <option value="Weekly Off">Week Off</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Holiday Name <span style="color:#6b7280;">(optional)</span></label>
+                <input type="text" name="holiday_name" placeholder="e.g. Republic Day">
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn-primary">Save</button>
+                <a href="{% url 'holiday_list' %}" class="btn-secondary">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

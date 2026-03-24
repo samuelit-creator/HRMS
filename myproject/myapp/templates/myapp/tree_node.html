@@ -1,0 +1,13 @@
+<div class="node" data-code="{{ node.code }}">
+    <div class="node-box manager drop-zone"
+         data-code="{{ node.code }}">
+        {{ node.name }} ({{ node.code }})
+        {% if node.role %} - {{ node.role }}{% endif %}
+    </div>
+
+    <div class="children">
+        {% for child in node.children %}
+            {% include "myapp/tree_node.html" with node=child %}
+        {% endfor %}
+    </div>
+</div>

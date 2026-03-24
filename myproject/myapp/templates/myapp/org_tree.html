@@ -1,0 +1,263 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<style>
+/* ===== ORG CHART ===== */
+.org-chart { text-align:center; padding:40px 20px; background:#fff; }
+.org-node { display:inline-block; text-align:center; position:relative; padding:20px; }
+.card { background:#fff; border-radius:10px; padding:12px 18px; border:1px solid #e5e7eb; box-shadow:0 2px 4px rgba(0,0,0,0.04); min-width:180px; }
+.children { display:flex; justify-content:center; gap:32px; margin-top:40px; position:relative; }
+.children::before { content:""; position:absolute; top:-30px; left:50%; width:2px; height:30px; background:#c7c7c7; }
+.children::after { content:""; position:absolute; top:0; left:10%; right:10%; height:2px; background:#c7c7c7; }
+.org-node::before { content:""; position:absolute; top:-20px; left:50%; width:2px; height:20px; background:#c7c7c7; }
+.root::before { display:none; }
+.chart-wrapper { overflow:hidden; position:relative; background:#f9fafb; }
+.chart-controls { position:sticky; top:10px; text-align:right; padding:10px; z-index:10; }
+.chart-controls button { padding:6px 10px; margin-left:5px; cursor:pointer; }
+.org-canvas { transform-origin:0 0; transition: transform .2s ease; cursor:grab; position:absolute; }
+
+.page-header { display:grid; grid-template-columns:280px 1fr; align-items:center; background:#fff; border-bottom:1px solid #e5e7eb; height:56px; font-weight:600; font-size:15px; color:#111827; }
+.header-left { padding-left:20px; border-right:1px solid #e5e7eb; }
+.header-right { padding-left:20px; }
+
+.org-container { display:grid; grid-template-columns:280px 1fr; height:calc(100vh - 56px); }
+.unassigned { padding:15px; border-right:1px solid #e5e7eb; overflow-y:auto; }
+.employee { padding:6px 10px; background:#f3f4f6; border-radius:6px; margin-bottom:4px; cursor:grab; }
+.department { margin-bottom:15px; border:1px solid #ddd; border-radius:6px; padding:4px; background:#fafafa; cursor:grab; }
+.dept-name { font-weight:600; margin-bottom:4px; }
+.root-children {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    margin-top: 30px;
+    position: relative;
+}
+
+.root-children::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 100%;
+    background: #c7c7c7;
+}
+
+</style>
+
+<div class="page-header">
+    <div class="header-left">Unassigned Employees</div>
+    <div class="header-right">Organization</div>
+</div>
+
+<div class="org-container">
+    <!-- LEFT PANEL -->
+    <div class="unassigned drop-zone" id="unassigned">
+    <!-- Special Employees -->
+    {% if special_employees %}
+        <div class="special-group">
+            <div class="dept-name">Special Employees</div>
+            {% for e in special_employees %}
+                <div class="employee" draggable="true" data-code="{{ e.EmployeeCode }}">
+                    {{ e.EmployeeName }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Departments -->
+    {% for dept in unassigned_departments %}
+        <div class="department">
+            <div class="dept-name">{{ dept.name }}</div>
+            {% for e in dept.employees %}
+                <div class="employee" draggable="true" data-code="{{ e.EmployeeCode }}">
+                    {{ e.EmployeeName }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>
+
+
+    <!-- RIGHT PANEL -->
+    <div class="chart-wrapper">
+        <div class="chart-controls">
+            <button onclick="zoomIn()">+</button>
+            <button onclick="zoomOut()">−</button>
+            <button onclick="resetZoom()">Reset</button>
+            <button onclick="saveChanges()">Save</button>
+        </div>
+        <div class="org-canvas" id="orgCanvas">
+            <div class="org-chart">
+                <div class="org-node root drop-zone" data-code="ROOT">
+                    <div class="card">Organization</div>
+                    {% if tree %}
+                    <div class="children">
+                        {% for node in tree %}
+                            {% include "myapp/org_node.html" with node=node depth=1 %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let scale = 1;
+let isPanning = false;
+let startX, startY;
+let dragged = null;
+let draggedDept = null;
+let changes = {};
+
+const canvas = document.getElementById("orgCanvas");
+
+/* ===== ZOOM ===== */
+function zoomIn(){ scale += 0.1; canvas.style.transform = `scale(${scale})`; }
+function zoomOut(){ scale = Math.max(0.3, scale - 0.1); canvas.style.transform = `scale(${scale})`; }
+function resetZoom(){ scale = 1; canvas.style.transform = "scale(1)"; }
+
+/* ===== PAN ===== */
+canvas.addEventListener("mousedown", e => {
+    isPanning = true;
+    startX = e.clientX - canvas.offsetLeft;
+    startY = e.clientY - canvas.offsetTop;
+});
+document.addEventListener("mouseup", () => isPanning = false);
+document.addEventListener("mousemove", e => {
+    if (!isPanning) return;
+    canvas.style.left = `${e.clientX - startX}px`;
+    canvas.style.top = `${e.clientY - startY}px`;
+});
+
+/* ===== DRAG START ===== */
+document.addEventListener("dragstart", e => {
+    const deptNode = e.target.closest(".department");
+    if (deptNode) {
+        draggedDept = deptNode;
+        e.dataTransfer.setData("text/plain", "department:" + deptNode.dataset.dept);
+        return;
+    }
+    const empNode = e.target.closest(".employee");
+    if (empNode) {
+        dragged = empNode;
+        e.dataTransfer.setData("text/plain", "employee:" + empNode.dataset.code);
+    }
+});
+function createOrgNode(empDiv) {
+    const node = document.createElement("div");
+    node.className = "org-node drop-zone";
+    node.dataset.code = empDiv.dataset.code;
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerText = empDiv.innerText.trim();
+
+    node.appendChild(card);
+    return node;
+}
+
+/* ===== DROP ===== */
+document.addEventListener("dragover", e => {
+    if (e.target.closest(".drop-zone")) e.preventDefault();
+});
+
+document.addEventListener("drop", e => {
+    const target = e.target.closest(".org-node.drop-zone");
+    if (!target) return;
+
+    const isRoot = target.dataset.code === "ROOT";
+
+    // ROOT uses vertical chain container
+    let container;
+    if (isRoot) {
+        container = target.querySelector(":scope > .root-children");
+        if (!container) {
+            container = document.createElement("div");
+            container.className = "root-children";
+            target.appendChild(container);
+        }
+    } 
+    // NON-ROOT uses normal children
+    else {
+        container = target.querySelector(":scope > .children");
+        if (!container) {
+            container = document.createElement("div");
+            container.className = "children";
+            target.appendChild(container);
+        }
+    }
+
+    /* ===== DEPARTMENT DROP ===== */
+    if (draggedDept) {
+        draggedDept.querySelectorAll(".employee").forEach(empDiv => {
+            const node = createOrgNode(empDiv);
+            const emp = empDiv.dataset.code;
+
+            changes[emp] = isRoot ? null : target.dataset.code;
+            container.appendChild(node);
+        });
+
+        draggedDept.remove();
+        draggedDept = null;
+        return;
+    }
+
+    /* ===== INDIVIDUAL EMPLOYEE DROP ===== */
+    if (dragged) {
+        const node = createOrgNode(dragged);
+        const emp = dragged.dataset.code;
+
+        changes[emp] = isRoot ? null : target.dataset.code;
+        container.appendChild(node);
+        dragged = null;
+    }
+});
+
+/* ===== DROP TO UNASSIGNED ===== */
+const unassigned = document.getElementById("unassigned");
+unassigned.addEventListener("dragover", e => e.preventDefault());
+unassigned.addEventListener("drop", () => {
+    // Individual employee
+    if (dragged) {
+        dragged.closest(".org-node")?.remove();
+        unassigned.appendChild(dragged);
+        changes[dragged.dataset.code] = null;
+        dragged = null;
+    }
+
+    // Department
+    if (draggedDept) {
+        draggedDept.remove();
+        unassigned.appendChild(draggedDept);
+        draggedDept.querySelectorAll(".employee").forEach(empNode => {
+            changes[empNode.dataset.code] = null;
+        });
+        draggedDept = null;
+    }
+});
+
+/* ===== SAVE ===== */
+function saveChanges() {
+    if (!Object.keys(changes).length) return alert("No changes to save");
+
+    fetch("{% url 'save_org_changes' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify(changes)
+    })
+    .then(r => r.json())
+    .then(d => alert(d.success ? "Saved!" : d.error));
+}
+
+function getCookie(name) {
+    return document.cookie.split("; ").find(r => r.startsWith(name+"="))?.split("=")[1];
+}
+</script>
+{% endblock %}

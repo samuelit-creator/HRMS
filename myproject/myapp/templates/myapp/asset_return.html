@@ -1,0 +1,64 @@
+{% extends "myapp/base.html" %}
+{% block title %}Return Asset{% endblock %}
+{% block page_title %}Return Asset: {{ allocation.Asset.AssetTag }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 border-top border-5 border-success">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="icon-box bg-success-subtle text-success rounded-3 p-3">
+                            <i class="bi bi-arrow-return-left fs-3"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0">Record Asset Return</h4>
+                            <p class="text-muted small mb-0">Process the return of <strong>{{ allocation.Asset.Name }}</strong> from <strong>{{ allocation.Employee.EmployeeName }}</strong>.</p>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Return Date</label>
+                                <input type="date" name="returned_date" class="form-control" value="{{ today|date:'Y-m-d' }}" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Current Condition</label>
+                                <select name="condition" class="form-select">
+                                    <option value="Excellent">Excellent (Like New)</option>
+                                    <option value="Good" selected>Good (Normal Wear)</option>
+                                    <option value="Fair">Fair (Minor Damages)</option>
+                                    <option value="Poor">Poor (Heavily Damaged)</option>
+                                    <option value="Damaged">Broken / Not Functional</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 mt-4">
+                                <div class="alert alert-info py-2 px-3 fw-medium x-small mb-4">
+                                    <i class="bi bi-info-circle me-1"></i> Saving this will mark the asset tag <strong>{{ allocation.Asset.AssetTag }}</strong> as <strong>AVAILABLE</strong> in the inventory.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end pt-3 border-top">
+                            <a href="{% url 'asset_list' %}" class="btn btn-light px-4">Cancel</a>
+                            <button type="submit" class="btn btn-success px-5 fw-bold">Process Return</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .x-small { font-size: 0.75rem; }
+    .card { border-radius: 12px; }
+    .bg-success-subtle { background-color: #f0fdf4 !important; }
+    .btn-success { background-color: #16a34a; border-color: #16a34a; }
+</style>
+{% endblock %}

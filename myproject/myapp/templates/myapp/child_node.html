@@ -1,0 +1,29 @@
+<div class="org-node" id="node-{{ node.code }}">
+    {% if node.children %}
+        <div class="org-children">
+            {% for child in node.children %}
+                <div class="node-container">
+                    <div class="emp-card level-{{ child.level }}" id="card-{{ child.code }}" data-name="{{ child.name|lower }}" data-code="{{ child.code|lower }}" data-dept="{{ child.department|lower }}" data-level="{{ child.level }}">
+                        <div class="emp-avatar">
+                            {% if child.photo %}
+                                <img src="data:image/jpeg;base64,{{ child.photo }}" alt="{{ child.name }}">
+                            {% else %}
+                                {{ child.name|slice:":1" }}
+                            {% endif %}
+                        </div>
+                        <div class="emp-info">
+                            <div class="emp-name">{{ child.name }}</div>
+                            <div class="emp-role">{{ child.designation }}</div>
+                            <div class="emp-dept">{{ child.department }}</div>
+                            <div class="emp-id">#{{ child.code }}</div>
+                        </div>
+                    </div>
+
+                    {% if child.children %}
+                        {% include "myapp/child_node.html" with node=child %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>

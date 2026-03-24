@@ -1,0 +1,13 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+<div class="container mt-5 text-center">
+    <div class="alert alert-danger" style="border-radius: 20px; padding: 3rem; background: #fee2e2; border: 1px solid #fecdd3;">
+        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 4rem;"></i>
+        <h2 class="mt-4 fw-bold" style="color: #991b1b;">Access Denied</h2>
+        <p class="text-muted mb-4">You do not have the required permissions (HR/IT) to manage company announcements.</p>
+        <a href="{% url 'dashboard' %}" class="btn btn-primary" style="border-radius: 12px; padding: 0.8rem 2rem; font-weight: 600;">
+            <i class="bi bi-house-door"></i> Return to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

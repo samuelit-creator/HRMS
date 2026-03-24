@@ -1,0 +1,89 @@
+{% extends "myapp/base.html" %}
+{% block title %}Create Pulse Survey{% endblock %}
+{% block page_title %}Launch New Survey{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0 fw-bold text-primary">New Pulse Survey</h5>
+                    <p class="text-muted small mb-0">Gather quick insights from your team.</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Survey Title</label>
+                            <input type="text" name="title" class="form-control" placeholder="e.g. Monthly Culture Pulse" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Description / Goal</label>
+                            <textarea name="description" class="form-control" rows="3" placeholder="Briefly explain what this survey is about..." required></textarea>
+                        </div>
+                        <div class="mb-4 pt-3 border-top">
+                            <label class="form-label fw-bold mb-3 d-flex justify-content-between align-items-center">
+                                Survey Questions
+                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" id="addQuestionBtn">
+                                    <i class="bi bi-plus-lg me-1"></i>Add Question
+                                </button>
+                            </label>
+                            
+                            <div id="questionsContainer">
+                                <div class="question-row mb-3 d-flex gap-2">
+                                    <div class="flex-grow-1">
+                                        <input type="text" name="questions[]" class="form-control" placeholder="Enter your first question..." required>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-danger btn-sm px-2 remove-q-btn" style="display: none;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            const container = document.getElementById('questionsContainer');
+                            const addBtn = document.getElementById('addQuestionBtn');
+
+                            addBtn.addEventListener('click', () => {
+                                const newRow = document.createElement('div');
+                                newRow.className = 'question-row mb-3 d-flex gap-2 animate__animated animate__fadeInUp';
+                                newRow.innerHTML = `
+                                    <div class="flex-grow-1">
+                                        <input type="text" name="questions[]" class="form-control" placeholder="Enter another question..." required>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-danger btn-sm px-2 remove-q-btn">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                `;
+                                container.appendChild(newRow);
+                                updateRemoveButtons();
+                            });
+
+                            container.addEventListener('click', (e) => {
+                                if (e.target.closest('.remove-q-btn')) {
+                                    e.target.closest('.question-row').remove();
+                                    updateRemoveButtons();
+                                }
+                            });
+
+                            function updateRemoveButtons() {
+                                const rows = container.querySelectorAll('.question-row');
+                                rows.forEach((row, index) => {
+                                    const delBtn = row.querySelector('.remove-q-btn');
+                                    delBtn.style.display = rows.length > 1 ? 'block' : 'none';
+                                });
+                            }
+                        </script>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end pt-3 border-top">
+                            <a href="{% url 'pulse_survey_list' %}" class="btn btn-light px-4">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-5 fw-bold">Launch Survey</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

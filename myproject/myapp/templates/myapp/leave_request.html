@@ -1,0 +1,718 @@
+{% extends "myapp/base.html" %}
+
+{% block title %}Leave Request{% endblock %}
+{% block page_title %}Apply Leave{% endblock %}
+
+{% block content %}
+<!-- Import Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* ================== VARIABLES & RESET ================== */
+  :root {
+    --primary: #1e293b;
+    --accent: #3b82f6;
+    --success: #22c55e;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    --radius: 20px;
+  }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg-gradient);
+    color: var(--primary);
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  .leave-dashboard {
+    max-width: 1300px;
+    margin: auto;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  /* ================== CHARTS SECTION ================== */
+  .chart-container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    padding: 30px;
+    border-radius: 24px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
+  }
+
+  .chart-container h3 {
+    margin: 0 0 24px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+  }
+
+  .chart-item {
+    background: #fff;
+    padding: 20px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    border: 1px solid #f1f5f9;
+    transition: transform 0.3s ease;
+  }
+
+  .chart-item:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .leave-pie {
+    width: 140px !important;
+    height: 140px !important;
+    margin: 0 auto 12px;
+  }
+
+  .chart-label {
+    font-weight: 700;
+    font-size: 14px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ================== MAIN CONTENT GRID ================== */
+  .leave-page-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 32px;
+  }
+
+  @media (max-width: 1024px) {
+    .leave-page-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ================== CARD STONES ================== */
+  .card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    padding: 32px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card h3 {
+    margin: 0 0 24px;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  /* ================== APPLY FORM ================== */
+  .apply-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 640px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    font-family: inherit;
+    font-size: 15px;
+    transition: all 0.2s;
+    background: #fff;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  }
+
+  .form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .submit-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: fit-content;
+    align-self: flex-end;
+  }
+
+  .submit-btn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+  }
+
+  .submit-btn:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  #leaveInfo {
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    background: #f1f5f9;
+    border-left: 4px solid var(--accent);
+  }
+
+  /* ================== BALANCE BOX ================== */
+  .balance-card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .balance-section {
+    background: #fff;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid #f1f5f9;
+  }
+
+  .balance-section h4 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .balance-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .balance-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #f1f5f9;
+  }
+
+  .balance-item:last-child {
+    border: none;
+  }
+
+  .balance-item span {
+    font-weight: 400;
+    color: #475569;
+  }
+
+  .balance-item b {
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  /* ================== TABLE SECTION ================== */
+  .history-container {
+    overflow-x: auto;
+  }
+
+  .leave-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    min-width: 800px;
+  }
+
+  .leave-table th {
+    padding: 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+  }
+
+  .leave-table td {
+    padding: 16px;
+    background: #fff;
+    font-size: 14px;
+    border-top: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .leave-table tr td:first-child {
+    border-left: 1px solid #f1f5f9;
+    border-radius: 12px 0 0 12px;
+  }
+
+  .leave-table tr td:last-child {
+    border-right: 1px solid #f1f5f9;
+    border-radius: 0 12px 12px 0;
+  }
+
+  .leave-table tr:hover td {
+    background: #f8fafc;
+  }
+
+  .status {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .status.PENDING {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status.APPROVED {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status.REJECTED {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+</style>
+
+<div class="leave-dashboard">
+
+  <!-- ================= LEAVE CHARTS ================= -->
+  <div class="chart-container">
+    <h3>Leave Allocation & Usage</h3>
+    <div class="chart-grid">
+      <div class="chart-item">
+        <canvas id="pie-casual" class="leave-pie"></canvas>
+        <div class="chart-label">Casual Leave</div>
+      </div>
+      <div class="chart-item">
+        <canvas id="pie-sick" class="leave-pie"></canvas>
+        <div class="chart-label">Sick Leave</div>
+      </div>
+      <div class="chart-item">
+        <canvas id="pie-optional" class="leave-pie"></canvas>
+        <div class="chart-label">Optional Leave</div>
+      </div>
+      <div class="chart-item">
+        <canvas id="pie-permission" class="leave-pie"></canvas>
+        <div class="chart-label">Permission</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="leave-page-grid">
+    <!-- LEFT: APPLY FORM -->
+    <div class="card">
+      <h3>Submit New Request</h3>
+      <form method="post" class="apply-layout">
+        {% csrf_token %}
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>From Date</label>
+            <input type="date" name="from_date" required id="fromDate">
+          </div>
+          <div class="form-group">
+            <label>To Date</label>
+            <input type="date" name="to_date" required id="toDate">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Leave Type</label>
+            <select name="leave_type" id="leaveType" required></select>
+          </div>
+          <div class="form-group" id="permissionBox" style="display:none;">
+            <label>Permission Duration</label>
+            <select name="permission_hours" id="permissionHours">
+              <option value="1">1 Hour</option>
+              <option value="2">2 Hours</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Detailed Reason</label>
+          <textarea name="reason" placeholder="Please provide a clear reason for your leave request..."
+            required></textarea>
+        </div>
+
+        <div id="leaveInfo" style="display:none;"></div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span>Apply Now</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- RIGHT: BALANCES -->
+    <div class="card balance-card">
+      <h3>Available Balances</h3>
+
+      <div class="balance-section">
+        <h4>📦 Quarterly Balance</h4>
+        <div class="balance-list">
+          {% for k,v in balances.items %}
+          {% if k != "Grace Time" and k != "Permission" %}
+          <div class="balance-item">
+            <span>{{ k }}</span>
+            <b>{{ v }}</b>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="balance-section">
+        <h4>📅 Monthly Balance</h4>
+        <div class="balance-list">
+          {% for k,v in balances.items %}
+          {% if k == "Permission" %}
+          <div class="balance-item">
+            <span>Permission</span>
+            <b>{{ v }} Hours</b>
+          </div>
+          {% elif k == "Grace Time" %}
+          <div class="balance-item">
+            <span>Grace Time</span>
+            <b>{{ v }}</b>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEAVE HISTORY -->
+  <div class="card">
+    <h3>Request History</h3>
+    <div class="history-container">
+      <table class="leave-table">
+        <thead>
+          <tr>
+            <th>Duration</th>
+            <th>Type</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Approved By</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in leave_requests %}
+          <tr>
+            <td>
+              <div style="font-weight:700;">{{ r.FromDate|date:"d M, Y" }}</div>
+              <div style="font-size:12px;color:#64748b;">to {{ r.ToDate|date:"d M, Y" }}</div>
+            </td>
+            <td><b>{{ r.LeaveType }}</b></td>
+            <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              title="{{ r.Reason }}">
+              {{ r.Reason }}
+            </td>
+            <td><span class="status {{ r.Status }}">{{ r.Status }}</span></td>
+            <td>
+              {% if r.ApprovedBy %}
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div
+                  style="width:24px; height:24px; background:#e2e8f0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700;">
+                  {{ r.ApprovedBy|slice:":1" }}</div>
+                {{ r.ApprovedBy }}
+              </div>
+              {% else %}
+              <span style="color:#94a3b8; font-style:italic;">Pending</span>
+              {% endif %}
+            </td>
+            <td style="text-align:right;">
+              {% if r.Status == "PENDING" %}
+              <form method="post" action="{% url 'delete_leave' r.LeaveId %}"
+                onsubmit="return confirm('Are you sure you want to cancel this request?');">
+                {% csrf_token %}
+                <button
+                  style="border:none; background:none; color:var(--danger); font-weight:700; cursor:pointer; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Cancel</button>
+              </form>
+              {% else %}
+              <span style="color:#cbd5e1;">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" style="text-align:center; padding:48px; color:#94a3b8;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
+                stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:16px; opacity:0.5;">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              <div>No leave requests found in your history.</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{{ balances|json_script:"balances-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const balances = JSON.parse(document.getElementById('balances-data').textContent);
+  const UNLIMITED_LEAVES = ["Work From Home", "Comp-Off", "Half Day", "Informed Leave"];
+  const LEAVE_TYPES = [
+    "Casual Leave", "Sick Leave", "Optional Leave", "Work From Home",
+    "Comp-Off", "Half Day", "Permission", "Informed Leave"
+  ];
+
+  const select = document.getElementById("leaveType");
+  const fromDate = document.getElementById("fromDate");
+  const toDate = document.getElementById("toDate");
+  const info = document.getElementById("leaveInfo");
+  const submitBtn = document.getElementById("submitBtn");
+  const permissionBox = document.getElementById("permissionBox");
+  const permissionHoursSelect = document.getElementById("permissionHours");
+
+  // Restrict to current and previous payroll cycle (26th to 25th)
+  const now = new Date();
+  let maxYear = now.getFullYear();
+  let maxMonth = now.getMonth(); // 0-indexed
+
+  if (now.getDate() >= 26) {
+    maxMonth += 1;
+    if (maxMonth > 11) {
+      maxMonth = 0;
+      maxYear += 1;
+    }
+  }
+  // Cycle always ends on the 25th of the target month
+  const maxCycleDate = new Date(maxYear, maxMonth, 26);
+  const maxDateStr = maxCycleDate.toISOString().split('T')[0];
+  fromDate.max = maxDateStr;
+  toDate.max = maxDateStr;
+
+  // Populate leave type dropdown
+  select.innerHTML = `<option value="">-- Select Leave Type --</option>`;
+  LEAVE_TYPES.forEach(type => {
+    if (balances[type] !== undefined && balances[type] === 0 && !UNLIMITED_LEAVES.includes(type)) return;
+    select.innerHTML += `<option value="${type}">${type}</option>`;
+  });
+
+  function calculate() {
+    info.innerHTML = "";
+    info.style.display = "none";
+    submitBtn.disabled = false;
+
+    const type = select.value;
+    if (!type) {
+      permissionBox.style.display = "none";
+      return;
+    }
+
+    if (UNLIMITED_LEAVES.includes(type)) {
+      permissionBox.style.display = "none";
+      if (fromDate.value && toDate.value) {
+        const days = Math.floor((new Date(toDate.value) - new Date(fromDate.value)) / 86400000) + 1;
+        info.innerHTML = `🗓️ Applying for <b>${days}</b> day(s)<br>♾️ <b>Unlimited</b> policy applies to this type.`;
+        info.style.display = "block";
+      }
+      return;
+    }
+
+    if (!fromDate.value || !toDate.value) {
+      permissionBox.style.display = (type === "Permission") ? "block" : "none";
+      return;
+    }
+
+    const from = new Date(fromDate.value);
+    const to = new Date(toDate.value);
+    const balance = balances[type] || 0;
+
+    if (to < from) {
+      info.innerHTML = "❌ Invalid date range: End date cannot be before start date.";
+      info.style.display = "block";
+      info.style.borderLeftColor = "var(--danger)";
+      submitBtn.disabled = true;
+      return;
+    }
+
+    const maxAllowedDate = new Date(maxDateStr);
+    maxAllowedDate.setHours(23, 59, 59, 999);
+    if (from > maxAllowedDate || to > maxAllowedDate) {
+      info.innerHTML = "❌ You can only apply for leave for current and previous months.";
+      info.style.display = "block";
+      info.style.borderLeftColor = "var(--danger)";
+      submitBtn.disabled = true;
+      return;
+    }
+
+    const days = Math.floor((to - from) / 86400000) + 1;
+
+    if (type === "Permission") {
+      permissionBox.style.display = "block";
+      if (days > 1) {
+        info.innerHTML = "❌ Permission can only be requested for a single day.";
+        info.style.display = "block";
+        info.style.borderLeftColor = "var(--danger)";
+        submitBtn.disabled = true;
+        return;
+      }
+      const hours = parseInt(permissionHoursSelect.value) || 0;
+      if (hours > balance) {
+        info.innerHTML = `❌ Insufficient balance: You only have <b>${balance}</b> hour(s) remaining.`;
+        info.style.display = "block";
+        info.style.borderLeftColor = "var(--danger)";
+        submitBtn.disabled = true;
+        return;
+      }
+      info.innerHTML = `⏱️ You have <b>${balance}</b> permission hour(s) available this month.`;
+      info.style.display = "block";
+      info.style.borderLeftColor = "var(--accent)";
+      return;
+    }
+
+    permissionBox.style.display = "none";
+    info.innerHTML = `🗓️ Requesting <b>${days}</b> day(s). You have <b>${balance}</b> remaining this quarter.`;
+    info.style.display = "block";
+    info.style.borderLeftColor = "var(--accent)";
+
+    if (days > balance) {
+      info.innerHTML = `❌ Insufficient balance: Requesting <b>${days}</b> days but only <b>${balance}</b> available.`;
+      info.style.borderLeftColor = "var(--danger)";
+      submitBtn.disabled = true;
+    }
+  }
+
+  fromDate.addEventListener("change", () => { toDate.min = fromDate.value; calculate(); });
+  toDate.addEventListener("change", calculate);
+  select.addEventListener("change", calculate);
+  permissionHoursSelect.addEventListener("change", calculate);
+</script>
+
+<script>
+  const LEAVE_LIMITS = {
+    "Casual Leave": 3,
+    "Sick Leave": 1,
+    "Optional Leave": 1,
+    "Permission": 4
+  };
+
+  function renderDoughnut(id, type) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const remaining = balances[type] ?? 0;
+    const total = LEAVE_LIMITS[type] || 5; // Fallback
+    const used = Math.max(total - remaining, 0);
+
+    new Chart(el, {
+      type: "doughnut",
+      data: {
+        labels: ["Used", "Available"],
+        datasets: [{
+          data: [used, remaining],
+          backgroundColor: ["#f1f5f9", "#3b82f6"],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        cutout: '70%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                return ` ${context.label}: ${context.raw}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  renderDoughnut("pie-casual", "Casual Leave");
+  renderDoughnut("pie-sick", "Sick Leave");
+  renderDoughnut("pie-optional", "Optional Leave");
+  renderDoughnut("pie-permission", "Permission");
+</script>
+
+{% endblock %}

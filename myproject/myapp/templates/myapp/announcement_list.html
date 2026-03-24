@@ -1,0 +1,122 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<style>
+    .announcement-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+    .header-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .announcement-list {
+        display: grid;
+        gap: 1.5rem;
+    }
+    .announcement-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-left: 5px solid #2563eb;
+    }
+    .announcement-card.inactive {
+        opacity: 0.6;
+        border-left-color: #94a3b8;
+    }
+    .ann-info h3 {
+        margin: 0 0 0.5rem 0;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    .ann-info p {
+        color: #64748b;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-clamp: 2;
+        overflow: hidden;
+    }
+    .ann-meta {
+        font-size: 0.85rem;
+        color: #94a3b8;
+    }
+    .ann-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+    .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+    .btn-primary {
+        background: #2563eb;
+        color: white;
+    }
+    .btn-primary:hover {
+        background: #1d4ed8;
+    }
+    .btn-outline {
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+    }
+    .btn-outline:hover {
+        background: #f8fafc;
+    }
+    .btn-danger {
+        color: #ef4444;
+    }
+</style>
+
+<div class="announcement-container">
+    <div class="header-actions">
+        <h1>Company Announcements</h1>
+        <a href="{% url 'add_announcement' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> New Announcement
+        </a>
+    </div>
+
+    <div class="announcement-list">
+        {% for ann in announcements %}
+        <div class="announcement-card {% if not ann.IsActive %}inactive{% endif %}">
+            <div class="ann-info">
+                <h3>{{ ann.Title }}</h3>
+                <p>{{ ann.Content|urlize|linebreaksbr }}</p>
+                <div class="ann-meta">
+                    <i class="bi bi-clock"></i> {{ ann.CreatedAt|date:"d M Y, h:i A" }}
+                    {% if not ann.IsActive %}
+                    <span class="ms-2 badge bg-secondary">Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="ann-actions">
+                <a href="{% url 'edit_announcement' pk=ann.id %}" class="btn btn-outline" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'delete_announcement' pk=ann.id %}" class="btn btn-outline btn-danger" onclick="return confirm('Delete this announcement?')" title="Delete">
+                    <i class="bi bi-trash"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <i class="bi bi-megaphone" style="font-size: 3rem; color: #e2e8f0;"></i>
+            <p class="mt-3 text-muted">No announcements yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

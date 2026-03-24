@@ -1,0 +1,170 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}HR Dashboard{% endblock %}</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'myapp/base.css' %}">
+
+    <style>
+        /* Notification dropdown */
+        .notif-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .notif-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .notif-wrapper .badge {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+        }
+        .notif-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: #fff;
+            border: 1px solid #ccc;
+            width: 260px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 999;
+        }
+        .notif-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+        }
+        .notif-item.unread {
+            font-weight: bold;
+            background: #f7f7f7;
+        }
+        .notif-item:hover {
+            background: #eaeaea;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar min" id="sidebar">
+        <h1>HR PANEL</h1>
+
+        <a>🏠 <span>Dashboard</span></a>
+        <a>👥 <span>Employees</span></a>
+        <a>📝 <span>Leave Requests</span></a>
+        <a>📅 <span>Attendance</span></a>
+        <a>📅 <span>Common Holidays</span></a>
+        <a>📅 <span>Spl Holidays</span></a>
+        <a>💰 <span>Payroll</span></a>
+        <a>📊 <span>Reports</span></a>
+    </aside>
+
+    <!-- Main -->
+    <div class="main min" id="main">
+
+        <!-- Topbar -->
+        <div class="topbar min" id="topbar">
+            <div style="display:flex;align-items:center;">
+                <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+                <h2>{% block page_title %}HR Dashboard{% endblock %}</h2>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:20px;">
+
+                <!-- Notifications -->
+                <div class="notif-wrapper">
+                    <button class="notif-btn" onclick="toggleNotifications()">🔔</button>
+                    {% if notification_count > 0 %}
+                        <span class="badge">{{ notification_count }}</span>
+                    {% endif %}
+
+                    <div class="notif-dropdown" id="notifDropdown">
+                        {% if notifications_list %}
+                            {% for notif in notifications_list %}
+                                <a href="{% url 'hr_open_notification' notif.id %}"
+                                   class="notif-item {% if notif.is_read == 0 %}unread{% endif %}">
+                                    {{ notif.message|truncatechars:50 }}
+                                    <br>
+                                    <small>{{ notif.created_at }}</small>
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="notif-item">No new notifications</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap:15px;">
+                    {% if emp_photo %}
+                        <div class="nav-avatar" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden;">
+                            <img src="data:image/jpeg;base64,{{ emp_photo }}" alt="{{ emp_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    {% else %}
+                        <div class="nav-avatar initials" style="width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">
+                            {{ emp_name|slice:":1"|default:"G" }}
+                        </div>
+                    {% endif %}
+                    <span>Hello, {{ emp_name|default:"Guest"}}</span>
+                    <form method="post" action="{% url 'emp_logout' %}">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-danger">Logout</button>
+                    </form>
+                </div>
+                <!-- Logout -->
+                
+
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="content">
+            <div class="content-wrapper">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("min");
+    document.getElementById("main").classList.toggle("min");
+    document.getElementById("topbar").classList.toggle("min");
+}
+
+function toggleNotifications() {
+    const dropdown = document.getElementById("notifDropdown");
+    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+}
+
+window.onclick = function(event) {
+    const dropdown = document.getElementById("notifDropdown");
+    const btn = document.querySelector(".notif-btn");
+    if (dropdown && event.target !== btn && !dropdown.contains(event.target)) {
+        dropdown.style.display = "none";
+    }
+}
+</script>
+
+</body>
+</html>

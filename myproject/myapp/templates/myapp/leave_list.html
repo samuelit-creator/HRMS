@@ -1,0 +1,351 @@
+{% extends "myapp/base.html" %}
+{% block title %}Leave Management{% endblock %}
+{% block page_title %}Leave Requests{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary: #4361ee;
+        --secondary: #3f37c9;
+        --success: #4cc9f0;
+        --info: #4895ef;
+        --warning: #f72585;
+        --danger: #e63946;
+        --bg-light: #f8f9fa;
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --glass-bg: rgba(255, 255, 255, 0.82);
+    }
+
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        padding: 0;
+    }
+
+    /* Tabs Styling */
+    .nav-pills-custom {
+        display: flex;
+        gap: 12px;
+        background: #f1f3f9;
+        padding: 6px;
+        border-radius: 12px;
+        width: fit-content;
+    }
+
+    .nav-pills-custom .nav-link {
+        border-radius: 8px;
+        padding: 8px 24px;
+        font-weight: 600;
+        color: #64748b;
+        transition: all 0.3s;
+        border: none;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .nav-pills-custom .nav-link.active {
+        background: white;
+        color: var(--primary);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .nav-pills-custom .nav-link:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.5);
+        color: #334155;
+    }
+
+    /* Table Styling */
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .modern-table th {
+        background: #f8f9fc;
+        padding: 16px 20px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #94a3b8;
+        font-weight: 700;
+        border-bottom: 1px solid #edf2f7;
+    }
+
+    .modern-table td {
+        padding: 18px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 14px;
+        vertical-align: middle;
+        color: #334155;
+    }
+
+    .modern-table tr:hover td {
+        background-color: rgba(67, 97, 238, 0.02);
+    }
+
+    /* Status Badges */
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-badge i { font-size: 10px; }
+
+    .status-approved { background: #ecfdf5; color: #10b981; border: 1px solid #d1fae5; }
+    .status-pending { background: #fffbeb; color: #f59e0b; border: 1px solid #fef3c7; }
+    .status-rejected { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
+
+    /* Action Buttons */
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-approve { background: #10b981; color: white; }
+    .btn-approve:hover { background: #059669; transform: translateY(-2px); }
+
+    .btn-reject { background: #ef4444; color: white; }
+    .btn-reject:hover { background: #dc2626; transform: translateY(-2px); }
+
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    .empty-state i {
+        font-size: 64px;
+        color: #cbd5e1;
+        margin-bottom: 20px;
+        display: block;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <div class="glass-card mb-4 p-4 d-flex justify-content-between align-items-center">
+            <div class="nav-pills-custom">
+                <a href="?status=PENDING" class="nav-link {% if current_status == 'PENDING' %}active{% endif %}">
+                    <i class="bi bi-hourglass-split me-2"></i>Pending
+                </a>
+                <a href="?status=APPROVED" class="nav-link {% if current_status == 'APPROVED' %}active{% endif %}">
+                    <i class="bi bi-check2-circle me-2"></i>Approved
+                </a>
+                <a href="?status=REJECTED" class="nav-link {% if current_status == 'REJECTED' %}active{% endif %}">
+                    <i class="bi bi-x-circle me-2"></i>Rejected
+                </a>
+            </div>
+            
+            <a href="{% url 'leave_request' %}" class="btn btn-primary d-flex align-items-center gap-2" 
+               style="border-radius: 12px; padding: 10px 20px; font-weight: 600;">
+                <i class="bi bi-plus-lg"></i> New Request
+            </a>
+        </div>
+
+        <div class="glass-card">
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>TL Details</th>
+                            <th>Dates</th>
+                            <th>Type</th>
+                            <th>Hours</th>
+                            <th>Status</th>
+                            {% if current_status == 'PENDING' %}
+                            <th class="text-center">Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in leaves %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar" style="width: 32px; height: 32px; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b; font-weight: 700; font-size: 12px;">
+                                        {{ leave.employee_name|make_list|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-primary">{{ leave.employee_name }}</div>
+                                        <small class="text-muted">{{ leave.employee_code }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if leave.tl_code %}
+                                <div class="small">
+                                    <div class="fw-600 text-dark">{{ leave.tl_name|default:"Unknown TL" }}</div>
+                                    <small class="text-muted">ID: {{ leave.tl_code }}</small>
+                                </div>
+                                {% else %}
+                                <span class="text-muted small">No Reporting</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <span class="text-muted d-block">From: <span class="text-dark fw-500">{{ leave.from|date:"d-M-Y" }}</span></span>
+                                    <span class="text-muted d-block">To: <span class="text-dark fw-500">{{ leave.to|date:"d-M-Y" }}</span></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-600 text-secondary">{{ leave.type }}</span>
+                            </td>
+                            <td>
+                                {% if leave.permission_hours %}
+                                <span class="badge bg-light text-dark px-3 py-2" style="border-radius: 8px;">{{ leave.permission_hours }}h</span>
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if leave.status == "APPROVED" %}
+                                    <span class="status-badge status-approved"><i class="bi bi-check-circle-fill"></i> Approved</span>
+                                {% elif leave.status == "REJECTED" %}
+                                    <span class="status-badge status-rejected"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                                {% else %}
+                                    <span class="status-badge status-pending"><i class="bi bi-clock-fill"></i> Pending</span>
+                                {% endif %}
+                            </td>
+                            {% if current_status == 'PENDING' %}
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn-action btn-approve" title="Approve" onclick="openActionModal('APPROVED', '{{ leave.leave_id }}', '{{ leave.employee_name }}')">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <button class="btn-action btn-reject" title="Reject" onclick="openActionModal('REJECTED', '{{ leave.leave_id }}', '{{ leave.employee_name }}')">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="{% if current_status == 'PENDING' %}7{% else %}6{% endif %}">
+                                <div class="empty-state">
+                                    <i class="bi bi-calendar2-x"></i>
+                                    <h5 class="fw-bold">No Records Found</h5>
+                                    <p class="text-muted">There are no {{ current_status|lower }} leave requests to display.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Modal -->
+<div class="modal fade" id="leaveActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="modalTitle">Leave Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <div class="alert alert-info d-flex align-items-center mb-4" style="border-radius: 12px; border: none; background: #eff6ff; color: #1e40af;">
+                    <i class="bi bi-info-circle-fill me-3 fs-4"></i>
+                    <div>
+                        Employee: <strong id="modalEmpName"></strong>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="fw-bold mb-2 small text-uppercase" style="letter-spacing: 0.5px; color: #64748b;">Remarks <span class="text-danger">*</span></label>
+                    <textarea id="modalRemarks" class="form-control" rows="4" placeholder="Enter your comments here..." 
+                              style="border-radius: 12px; border: 1px solid #e2e8f0; padding: 15px;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal" style="border-radius: 12px; font-weight: 600;">Cancel</button>
+                <button type="button" id="confirmActionBtn" class="btn btn-primary px-4" onclick="submitAction()" style="border-radius: 12px; font-weight: 600;">
+                    Confirm Action
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentLeaveId = null;
+let currentStatus = null;
+const actionModal = new bootstrap.Modal(document.getElementById('leaveActionModal'));
+
+function openActionModal(status, leaveId, employeeName) {
+    currentLeaveId = leaveId;
+    currentStatus = status;
+    
+    document.getElementById('modalTitle').innerText = status === 'APPROVED' ? 'Approve Leave' : 'Reject Leave';
+    document.getElementById('modalEmpName').innerText = employeeName;
+    document.getElementById('modalRemarks').value = '';
+    
+    const confirmBtn = document.getElementById('confirmActionBtn');
+    confirmBtn.className = status === 'APPROVED' ? 'btn btn-success px-4' : 'btn btn-danger px-4';
+    confirmBtn.innerText = status === 'APPROVED' ? 'Approve Leave' : 'Reject Leave';
+    
+    actionModal.show();
+}
+
+function submitAction() {
+    const remarks = document.getElementById('modalRemarks').value.trim();
+    if (!remarks) {
+        alert("Please enter remarks.");
+        return;
+    }
+
+    const submitBtn = document.getElementById('confirmActionBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+
+    fetch(`/leave/approve-reject/${currentLeaveId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            status: currentStatus,
+            remarks: remarks
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || "An error occurred.");
+            submitBtn.disabled = false;
+            submitBtn.innerText = currentStatus === 'APPROVED' ? 'Approve Leave' : 'Reject Leave';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("A system error occurred.");
+        submitBtn.disabled = false;
+        submitBtn.innerText = currentStatus === 'APPROVED' ? 'Approve Leave' : 'Reject Leave';
+    });
+}
+</script>
+{% endblock %}

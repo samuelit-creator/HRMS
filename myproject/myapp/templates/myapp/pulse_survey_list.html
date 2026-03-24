@@ -1,0 +1,87 @@
+{% extends "myapp/base.html" %}
+{% block title %}Pulse Surveys{% endblock %}
+{% block page_title %}Pulse Surveys{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0 fw-bold">Company Pulse</h4>
+            <p class="text-muted small mb-0">Your feedback helps us build a better workplace.</p>
+        </div>
+        {% if request.session.allocate_position == 'HR' or request.session.allocate_position == 'IT' %}
+        <a href="{% url 'pulse_survey_create' %}" class="btn btn-primary px-4">
+            <i class="bi bi-plus-lg me-2"></i>New Survey
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        {% for survey in surveys %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 h-100 overflow-hidden">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            {% if survey.IsActive %}
+                            <div class="badge bg-success-subtle text-success rounded-pill px-3 py-1 small fw-bold">Active</div>
+                            {% else %}
+                            <div class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1 small fw-bold">Closed</div>
+                            {% endif %}
+                        </div>
+                        {% if survey.id in responded_ids %}
+                        <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="fw-bold mb-2">{{ survey.Title }}</h5>
+                    <p class="text-muted small mb-4 text-truncate-2">{{ survey.Description }}</p>
+                    
+                    <div class="d-grid gap-2 mt-auto">
+                        {% if survey.IsActive %}
+                            {% if survey.id in responded_ids %}
+                            <button class="btn btn-light disabled fw-bold" disabled>Already Answered</button>
+                            {% else %}
+                            <a href="{% url 'pulse_survey_submit' survey.id %}" class="btn btn-primary fw-bold">Take Survey</a>
+                            {% endif %}
+                        {% else %}
+                            <button class="btn btn-secondary disabled fw-bold" disabled>Survey Closed</button>
+                        {% endif %}
+                        
+                        <div class="d-flex gap-2">
+                            {% if request.session.allocate_position == 'HR' or request.session.allocate_position == 'IT' %}
+                            <a href="{% url 'pulse_survey_results' survey.id %}" class="btn btn-outline-primary btn-sm flex-grow-1">
+                                <i class="bi bi-bar-chart-fill me-1"></i>Results
+                            </a>
+                            <a href="{% url 'pulse_survey_toggle' survey.id %}" class="btn btn-{% if survey.IsActive %}warning{% else %}success{% endif %} btn-sm" title="{% if survey.IsActive %}Close{% else %}Open{% endif %} Survey">
+                                <i class="bi bi-power"></i>
+                            </a>
+                            <a href="{% url 'pulse_survey_delete' survey.id %}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete this survey and all responses?')" title="Delete Survey">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="progress rounded-0" style="height: 4px;">
+                    <div class="progress-bar {% if survey.id in responded_ids %}bg-success{% else %}bg-primary{% endif %}" role="progressbar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted">
+                <i class="bi bi-megaphone display-1 opacity-10 mb-3"></i>
+                <p>No active surveys at the moment.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .card { border-radius: 16px; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-3px); }
+    .bg-primary-subtle { background-color: #eff6ff !important; }
+</style>
+{% endblock %}

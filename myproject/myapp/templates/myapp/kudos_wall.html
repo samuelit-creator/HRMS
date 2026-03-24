@@ -1,0 +1,212 @@
+{% extends "myapp/base.html" %}
+{% block title %}Kudos Wall - Recognition & Appreciation{% endblock %}
+{% block page_title %}Kudos Wall{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Send Kudos Form -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 20px; border-radius: 20px; overflow: hidden;">
+                <div class="card-header bg-primary text-white py-4 border-0">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-megaphone me-2"></i>Give a Kudos!</h5>
+                    <p class="mb-0 opacity-75 small">Appreciate a colleague's hard work and impact.</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">CHOOSE RECIPIENT</label>
+                            <select name="to_employee" class="form-select border-0 bg-light py-2" required style="border-radius: 10px;">
+                                <option value="" disabled selected>Select colleague...</option>
+                                {% for emp in employees %}
+                                <option value="{{ emp.EmployeeCode }}">{{ emp.EmployeeName }} ({{ emp.EmployeeCode }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">CATEGORY</label>
+                            <select name="category" class="form-select border-0 bg-light py-2" required style="border-radius: 10px;">
+                                {% for cat in categories %}
+                                <option value="{{ cat }}" {% if cat == 'Great Work' %}selected{% endif %}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">YOUR MESSAGE</label>
+                            <textarea name="message" class="form-control border-0 bg-light p-3" rows="4" placeholder="Why are they awesome?" required style="border-radius: 15px; resize: none;"></textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary fw-bold py-3 shadow-sm icon-link icon-link-hover" style="border-radius: 12px; transition: all 0.3s;">
+                                Post Recognition <i class="bi bi-send-fill ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kudos Feed -->
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Recent Recognitions</h5>
+                <span class="badge bg-light text-dark shadow-sm py-2 px-3" style="border-radius: 20px;">
+                    <i class="bi bi-clock-history me-1"></i> Real-time Feed
+                </span>
+            </div>
+            
+            <div class="kudos-feed">
+                {% for kudos in kudos_list %}
+                <div class="card shadow-sm border-0 mb-4 kudos-card" style="border-radius: 20px; transition: all 0.3s ease;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-lg bg-gradient-primary-to-secondary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm">
+                                    {{ kudos.FromEmployee.EmployeeName|slice:":1" }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark fs-5">
+                                        {{ kudos.FromEmployee.EmployeeName }} 
+                                    </div>
+                                    <div class="text-muted small">
+                                        sent to <span class="fw-semibold text-primary">@{{ kudos.ToEmployee.EmployeeName }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="badge category-badge py-2 px-3" style="background: rgba(var(--bs-primary-rgb), 0.1); color: var(--bs-primary); border-radius: 30px; font-weight: 600;">
+                                <i class="bi bi-tag-fill me-1 small"></i> {{ kudos.Category }}
+                            </span>
+                        </div>
+
+                        <div class="kudos-message-container p-4 rounded-4 bg-light mb-3 position-relative">
+                            <i class="bi bi-quote fs-1 text-primary opacity-10 position-absolute end-0 top-0 mt-2 me-3"></i>
+                            <p class="mb-0 text-dark fs-5 italic-message" style="position: relative; z-index: 1; line-height: 1.6;">
+                                {{ kudos.Message }}
+                            </p>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted small">
+                                <i class="bi bi-clock me-1"></i> {{ kudos.CreatedAt|timesince }} ago
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="btn btn-like {% if kudos.is_liked %}liked{% endif %} d-flex align-items-center gap-2" 
+                                        onclick="toggleLike({{ kudos.id }}, this)" 
+                                        style="border-radius: 30px; padding: 6px 16px; transition: all 0.2s;">
+                                    <i class="bi {% if kudos.is_liked %}bi-heart-fill text-danger{% else %}bi-heart{% endif %} fs-5"></i>
+                                    <span class="like-count fw-bold">{{ kudos.like_count }}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="card shadow-sm border-0 text-center py-5" style="border-radius: 20px;">
+                    <div class="card-body">
+                        <div class="display-3 text-muted opacity-25 mb-4">
+                            <i class="bi bi-balloon-heart"></i>
+                        </div>
+                        <h4 class="fw-bold">No recognition posted yet</h4>
+                        <p class="text-muted">Kind words go a long way. Be the first to appreciate someone!</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #4e73df;
+        --secondary: #858796;
+    }
+
+    .bg-gradient-primary-to-secondary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    }
+
+    .avatar-lg {
+        width: 54px;
+        height: 54px;
+        font-size: 1.4rem;
+    }
+
+    .kudos-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important;
+    }
+
+    .kudos-message-container {
+        border-left: 5px solid var(--primary);
+    }
+
+    .italic-message {
+        font-family: 'Inter', sans-serif;
+        font-style: italic;
+    }
+
+    .btn-like {
+        background: #fff;
+        border: 1px solid #eee;
+        color: #666;
+    }
+
+    .btn-like:hover {
+        background: #fff0f0;
+        border-color: #ffc1c1;
+        color: #ff4d4d;
+    }
+
+    .btn-like.liked {
+        background: #fff0f0;
+        border-color: #ffc1c1;
+        color: #ff4d4d;
+    }
+
+    .btn-like i {
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .btn-like:active i {
+        transform: scale(1.4);
+    }
+
+    .category-badge {
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+</style>
+
+<script>
+function toggleLike(kudosId, btn) {
+    const icon = btn.querySelector('i');
+    const countSpan = btn.querySelector('.like-count');
+    
+    fetch(`/kudos/like/${kudosId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            if (data.liked) {
+                btn.classList.add('liked');
+                icon.classList.remove('bi-heart');
+                icon.classList.add('bi-heart-fill', 'text-danger');
+            } else {
+                btn.classList.remove('liked');
+                icon.classList.remove('bi-heart-fill', 'text-danger');
+                icon.classList.add('bi-heart');
+            }
+            countSpan.innerText = data.like_count;
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+{% endblock %}

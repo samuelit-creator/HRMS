@@ -1,0 +1,36 @@
+<h2>Edit Punch ID {{ data.id }}</h2>
+<form method="post">
+    {% csrf_token %}
+    <label>Employee Code:</label>
+    <input type="text" id="emp_code" name="emp_code" required><br><br>
+    <label>Punch Date:</label>
+    <input type="date" id="punch_date" name="punch_date" required><br><br>
+    <label>Punch Time:</label>
+    <input type="time" id="punch_time" name="punch_time" required><br><br>
+    <label>Punch Type:</label>
+    <select id="punch_type" name="punch_type">
+    <option value="IN">IN</option>
+    <option value="OUT">OUT</option>
+</select><br><br>
+    <label>Remarks</label>
+    <textarea id="remarks" name="remarks" class="form-control"></textarea>
+
+    <button type="submit">Save</button></form>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const data = {
+        emp_code: "{{ data.emp_code }}",
+        punch_date: "{{ data.date|date:'Y-m-d' }}",
+        punch_time: "{{ data.time|time:'H:i' }}",
+        punch_type: "{{ data.type }}",
+        remarks: `{{ data.remarks|default_if_none:''|escapejs }}`
+    };
+
+    document.getElementById("emp_code").value = data.emp_code;
+    document.getElementById("punch_date").value = data.punch_date;
+    document.getElementById("punch_time").value = data.punch_time;
+    document.getElementById("punch_type").value = data.punch_type;
+    document.getElementById("remarks").value = data.remarks;
+});
+</script>

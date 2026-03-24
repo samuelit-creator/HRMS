@@ -1,0 +1,307 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <title>Salary Slip</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        /* Style for the center section */
+.center {
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 20px;
+}
+/* Style for the header */
+.header {
+    display: flex;
+    align-items: center;  /* Vertically align logo and text */
+    justify-content: center;  /* Center the entire header horizontally */
+    margin-bottom: 10px;  /* Reduced space below header */
+}
+
+/* Logo container */
+.logo-container {
+    display: inline-block;
+    margin-right: 10px;  /* Reduced space between logo and text */
+}
+
+.logo {
+    height: 65px;
+    width: auto;
+    display: block;
+}
+
+/* Company Name and Tagline */
+.company-name {
+    text-align: left;
+}
+
+.company-name-text {
+    font-size: 25px;
+    font-weight: bold;
+    color: #000000; /* Green color for company name */
+}
+
+.company-tagline {
+    font-size: 20px;
+    color: #777;
+    display: block;  /* Ensures the tagline appears under the company name */
+    margin-top: 5px;  /* Adds some space between the company name and tagline */
+}
+
+
+
+
+
+        /* Form Styles */
+        .filter-form {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .filter-form label {
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        .filter-form select {
+            padding: 6px;
+            font-size: 14px;
+            margin-right: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .filter-form button {
+            padding: 6px 15px;
+            font-size: 14px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .filter-form button:hover {
+            background-color: #4cae4c;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f8f8;
+            color: #333;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .no-border td {
+            border: none;
+            padding: 8px;
+        }
+
+        /* Footer Styles */
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            text-align: center;
+            color: #777;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                padding: 10px;
+            }
+            table, th, td {
+                font-size: 12px;
+            }
+            .filter-form select, .filter-form button {
+                font-size: 12px;
+            }
+        }
+    </style>
+
+    <div class="filter-form">
+        <form method="get">
+            <label>Month:</label>
+            <select name="month">
+                {% for num, name in months %}
+                    <option value="{{ num }}" {% if num == month %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Year:</label>
+            <select name="year">
+                {% for y in years %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">View</button>
+        </form>
+    </div>
+
+    <div class="container">
+        
+      <div class="header">
+    <div class="logo-container">
+        <img
+            src="https://github.com/samuelit-creator/HRMS/blob/main/med.png?raw=true"
+            alt="MedLearn Vision"
+            class="logo"
+        >
+    </div>
+    <div class="company-name">
+        <span class="company-name-text">Medlearn Vision Healthcare Solutions</span>
+        <span class="company-tagline">Private Limited</span>
+    </div>
+</div>
+<br><br>
+
+
+
+
+        <div class="center">
+            Salary Slip for {{ month }}/{{ year }}
+        </div>
+
+        <table class="no-border">
+            <tr>
+                <td><b>Employee Name:</b> {{ emp_name }}</td>
+                <td><b>Employee Type:</b> {{ employementtype }}</td>
+            </tr>
+            <tr>
+                <td><b>Employee Code:</b> {{ emp_code }}</td>
+                <td><b>Designation:</b> {{ designation }}</td>
+            </tr>
+            <tr>
+                <td><b>Duration:</b> {{ month }}/{{ year }}</td>
+                <td><b>Location:</b> {{ location }}</td>
+            </tr>
+            <tr>
+                <td><b>Department:</b> {{ department }}</td>
+                <td><b>No of Days in the Month:</b> {{ total_days }}</td>
+            </tr>
+            <tr>
+                <td><b>Date of Joining:</b> {{ doj }}</td>
+                <td><b>Paid Days:</b> {{ present_days }}</td>
+            </tr>
+            <tr>
+                <td><b>LOP:</b> {{ absent_days }}</td>
+                <td><b>Extra Pay:</b> 0</td>
+            </tr>
+            <tr>
+                <td><b>UAN No.:</b> Exempted</td>
+                <td><b>ESIC No.:</b> Exempted</td>
+            </tr>
+            <tr>
+                <td><b>Bank Name:</b> {{ bank_name }}</td>
+                <td><b>Account No:</b> {{ account_number }}</td>
+            </tr>
+            <tr>
+                <td><b>IFSC Code:</b> {{ ifsc_code }}</td>
+                <td></td>
+            </tr>
+        </table>
+
+        <table>
+            <tr>
+                <th>Earning Components</th>
+                <th>Amount (Rs.)</th>
+                <th>Common Deductions</th>
+                <th>Amount (Rs.)</th>
+            </tr>
+            <tr>
+                <td>Basic</td>
+                <td>{{ basic }}</td>
+                <td>Provident Fund</td>
+                <td>{{ pf }}</td>
+            </tr>
+            <tr>
+                <td>HRA</td>
+                <td>{{ hra }}</td>
+                <td>ESIC</td>
+                <td>{{ esi }}</td>
+            </tr>
+            <tr>
+                <td>Dearness Allowance</td>
+                <td>0</td>
+                <td>PT</td>
+                <td>208</td>
+            </tr>
+            <tr>
+                <td>Other Allowances</td>
+                <td>{{ allowance }}</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Night Shift Allowance</td>
+                <td>0</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Attendance Bonus</td>
+                <td>0</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Additional Pay</td>
+                <td>0</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Gross Earning</th>
+                <th>{{ gross_salary }}</th>
+                <th>Total Deductions</th>
+                <th>{{ total_deductions }}</th>
+            </tr>
+            <tr>
+                <th colspan="3">Total Pay</th>
+                <th>{{ net_salary }}</th>
+            </tr>
+        </table>
+
+        <br>
+
+        <b>{{ net_salary_words }}</b>
+
+        <div class="footer">
+            <br>
+            Note: This is a Computer-Generated Slip and does not require signature
+        </div>
+    </div>
+
+{% endblock %}

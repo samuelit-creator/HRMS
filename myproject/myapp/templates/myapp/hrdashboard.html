@@ -1,0 +1,676 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+{% load custom_filters %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+/* ===== Modern Variables ===== */
+:root {
+    --primary: #4361ee;
+    --secondary: #3f37c9;
+    --success: #4cc9f0;
+    --info: #4895ef;
+    --warning: #f72585;
+    --danger: #e63946;
+    --bg-light: #f8f9fa;
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    --glass-bg: rgba(255, 255, 255, 0.8);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f2f5;
+    color: #2b2d42;
+    margin: 0;
+    padding: 20px;
+}
+
+/* ===== Glassmorphism Cards ===== */
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* ===== Dashboard Summary ===== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    padding: 25px;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-right: 20px;
+    color: white;
+}
+
+.icon-blue { background: linear-gradient(135deg, #4361ee, #4895ef); }
+.icon-green { background: linear-gradient(135deg, #4cc9f0, #4cc9f0); }
+.icon-pink { background: linear-gradient(135deg, #f72585, #ff4d6d); }
+.icon-orange { background: linear-gradient(135deg, #fb5607, #ffbe0b); }
+
+.stat-content h3 {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0 0 5px 0;
+    font-weight: 500;
+}
+
+.stat-content .value {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0;
+    color: #2b2d42;
+}
+
+/* ===== Header Section ===== */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.dashboard-header h2 {
+    font-weight: 800;
+    font-size: 28px;
+    margin: 0;
+    background: linear-gradient(90deg, #4361ee, #f72585);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ===== Filters ===== */
+.filter-section {
+    padding: 15px 25px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter-section input[type="date"] {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 8px 12px;
+    outline: none;
+    transition: 0.2s;
+}
+
+.filter-section input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+}
+
+.btn-premium {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: 0.3s;
+    text-decoration: none;
+}
+
+.btn-premium:hover {
+    background: var(--secondary);
+    transform: scale(1.02);
+    color: white;
+}
+
+/* ===== Charts Area ===== */
+.charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.chart-card {
+    padding: 25px;
+}
+
+.chart-card h4 {
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.chart-container {
+    height: 350px;
+    position: relative;
+    width: 100%;
+}
+
+/* ===== Swiper Customization ===== */
+.team-swiper {
+    padding: 40px 0;
+    margin-bottom: 30px;
+}
+
+.team-slide-card {
+    width: 100%;
+    max-width: 550px;
+    min-height: 480px;
+}
+
+.team-card-header {
+    padding: 20px;
+    background: linear-gradient(135deg, #4361ee, #4cc9f0);
+    color: white;
+}
+
+.team-stats-pill {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+/* ===== Tables ===== */
+.modern-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.modern-table th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f8f9fa;
+    padding: 15px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.modern-table td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.status-badge {
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-approved { background: #e7f6f2; color: #059669; }
+.status-pending { background: #fffbe6; color: #d4a017; }
+.status-rejected { background: #fef2f2; color: #dc2626; }
+
+/* Swiper Container */
+.swiper {
+    width: 100%;
+    height: auto;
+}
+
+.swiper-slide {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+}
+
+.scrollable-body {
+    max-height: 300px;
+    overflow-y: auto;
+}
+</style>
+
+</style>
+
+<div class="dashboard-header">
+    <h2>HR Analytics Dashboard</h2>
+    <div class="dept-badge glass-card" style="padding: 8px 18px; font-weight: 600; font-size: 14px; color: var(--primary);">
+        <i class="bi bi-building me-2"></i> {{ dept_name }}
+    </div>
+</div>
+
+<!-- ===== Summary Stats ===== -->
+<div class="dashboard-grid">
+    <div class="glass-card stat-card">
+        <div class="stat-icon icon-blue">
+            <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Total Employees</h3>
+            <p class="value">{{ total_employees }}</p>
+        </div>
+    </div>
+    <div class="glass-card stat-card">
+        <div class="stat-icon icon-green">
+            <i class="bi bi-person-check-fill"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Present Today</h3>
+            <p class="value">{{ total_present }}</p>
+        </div>
+    </div>
+    <div class="glass-card stat-card">
+        <div class="stat-icon icon-pink">
+            <i class="bi bi-person-x-fill"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Absentees</h3>
+            <p class="value">{{ total_absent }}</p>
+        </div>
+    </div>
+    <div class="glass-card stat-card">
+        <div class="stat-icon icon-orange" style="background: linear-gradient(135deg, #ff9e00, #ff6d00);">
+            <i class="bi bi-calendar-day"></i>
+        </div>
+        <div class="stat-content">
+            <h3>On Leave Today</h3>
+            <p class="value">{{ approved_leaves }}</p>
+        </div>
+    </div>
+    <div class="glass-card stat-card">
+        <div class="stat-icon icon-pink" style="background: linear-gradient(135deg, #7209b7, #b5179e);">
+            <i class="bi bi-hourglass-split"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Pending Leaves</h3>
+            <p class="value">{{ pending_leaves }}</p>
+        </div>
+    </div>
+    <div class="glass-card stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #ef476f, #ffd166);">
+            <i class="bi bi-graph-down-arrow"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Shrinkage %</h3>
+            <p class="value">{{ shrinkage }}%</p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Filters ===== -->
+<div class="glass-card filter-section">
+    <form method="get" action="{% url 'hrdashboard' %}" class="d-flex align-items-center gap-3">
+        <label class="fw-bold small">Analysis Date:</label>
+        <input type="date" name="date" value="{{ date|date:'Y-m-d' }}" required>
+        <button type="submit" class="btn-premium">
+            <i class="bi bi-filter-circle me-2"></i> Apply Filter
+        </button>
+    </form>
+</div>
+
+<!-- ===== Charts Row 1: Trends and Teams ===== -->
+<div class="charts-grid">
+    <div class="glass-card chart-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="m-0"><i class="bi bi-graph-up me-2 text-primary"></i> 7-Day Attendance Trend</h4>
+            <div class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">Weekly Analytics</div>
+        </div>
+        <div class="chart-container">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+    <div class="glass-card chart-card">
+        <h4 class="mb-4"><i class="bi bi-pie-chart me-2 text-primary"></i> Attendance Distribution</h4>
+        <div class="chart-container">
+            <canvas id="attendancePie"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Charts Row 2: Department and Detailed Team ===== -->
+<div class="charts-grid">
+    <div class="glass-card chart-card">
+        <h4 class="mb-4"><i class="bi bi-bar-chart-steps me-2 text-primary"></i> Team Stacked Status</h4>
+        <div class="chart-container">
+            <canvas id="attendanceChart"></canvas>
+        </div>
+    </div>
+    <div class="glass-card chart-card">
+        <h4 class="mb-4"><i class="bi bi-diagram-3 me-2 text-primary"></i> Department Breakdown</h4>
+        <div class="chart-container">
+            <canvas id="deptChart"></canvas>
+        </div>
+    </div>
+</div>
+<!-- TEAM TABLES -->
+<div class="team-swiper">
+    <div class="swiper mySwiper">
+        <div class="swiper-wrapper">
+            {% for team in team %}
+            <div class="swiper-slide">
+                <div class="glass-card team-slide-card d-flex flex-column">
+                    <div class="team-card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold fs-5">{{ team.team_name }}</span>
+                            <br>
+                            <small class="opacity-75">Code: {{ team.team_code }}</small>
+                        </div>
+                        <div class="team-stats-pill">
+                            <i class="bi bi-people me-1"></i> {{ team.total }}
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 d-flex gap-3 border-bottom bg-light">
+                        <div class="text-center flex-fill">
+                            <small class="text-muted d-block">Present</small>
+                            <span class="fw-bold text-success">{{ team.present }}</span>
+                        </div>
+                        <div class="vr"></div>
+                        <div class="text-center flex-fill">
+                            <small class="text-muted d-block">Absent</small>
+                            <span class="fw-bold text-danger">{{ team.absent }}</span>
+                        </div>
+                    </div>
+
+                    <div class="scrollable-body p-0">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th>Emp Code</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in team.members %}
+                                <tr>
+                                    <td class="fw-bold">
+                                        <a href="{% url 'spoc_employee_dashboard' row.emp_code %}" class="text-decoration-none" style="color: var(--primary);">
+                                            {{ row.emp_code }}
+                                        </a>
+                                    </td>
+                                    <td>{{ row.emp_name }}</td>
+                                    <td>
+                                        {% if row.status == 'PRESENT' %}
+                                        <span class="badge rounded-pill bg-success-subtle text-success px-3" style="font-size: 10px;">PRESENT</span>
+                                        {% else %}
+                                        <span class="badge rounded-pill bg-danger-subtle text-danger px-3" style="font-size: 10px;">ABSENT</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="p-3 text-center border-top">
+                        <a href="#" class="small text-decoration-none fw-600">View Full Reports <i class="bi bi-arrow-right ms-1"></i></a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-next" style="color: var(--primary);"></div>
+        <div class="swiper-button-prev" style="color: var(--primary);"></div>
+    </div>
+</div>
+
+<!-- ===== Leave Requests Table ===== -->
+<div class="glass-card mb-5">
+    <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-white" style="border-radius: 16px 16px 0 0;">
+        <h5 class="m-0 fw-bold"><i class="bi bi-calendar2-check me-2 text-primary"></i> Recent Leave Requests</h5>
+        <a href="{% url 'leave_request' %}" class="btn-premium py-2">
+            <i class="bi bi-plus-lg me-1"></i> Apply Leave
+        </a>
+    </div>
+    <div class="table-responsive scrollable-body" style="max-height: 400px;">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Emp Code</th>
+                    <th>Type</th>
+                    <th>Schedule</th>
+                    <th>Days</th>
+                    <th>Reason</th>
+                    <th>Approved By</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for leave in leaves %}
+                <tr>
+                    <td class="fw-bold text-primary">{{ leave.EmployeeCode }}</td>
+                    <td>
+                        <span class="small fw-600 text-secondary">{{ leave.LeaveType }}</span>
+                    </td>
+                    <td>
+                        <div class="small">
+                            <span class="text-muted">From:</span> {{ leave.FromDate|date:"d M" }}
+                            <br>
+                            <span class="text-muted">To:</span> {{ leave.ToDate|date:"d M" }}
+                        </div>
+                    </td>
+                    <td class="text-center"><span class="badge bg-light text-dark rounded-circle" style="width:24px; height:24px; line-height:16px;">{{ leave.Days }}</span></td>
+                    <td class="text-muted">{{ leave.Reason|truncatechars:20 }}</td>
+                    <td class="small">{{ leave.ApprovedBy|default:"-" }}</td>
+                    <td>
+                        {% if leave.Status == "APPROVED" %}
+                            <span class="status-badge status-approved">Approved</span>
+                        {% elif leave.Status == "REJECTED" %}
+                            <span class="status-badge status-rejected">Rejected</span>
+                        {% else %}
+                            <span class="status-badge status-pending">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center" style="border-radius: 0 0 16px 16px;">
+        <small class="text-muted">Showing {{ leaves|length }} recent entries</small>
+        <a href="{% url 'leave_list' %}" class="small text-decoration-none">View All Requests <i class="bi bi-chevron-right ms-1"></i></a>
+    </div>
+</div>
+
+<!-- ===== Chart Data ===== -->
+{{ teams|json_script:"teams-data" }}
+{{ present_counts_team|json_script:"present-data" }}
+{{ absent_counts_team|json_script:"absent-data" }}
+{{ leave_counts_team|json_script:"leave-data" }}
+{{ pie_labels|json_script:"pie-labels" }}
+{{ pie_values|json_script:"pie-values" }}
+{{ trend_labels|json_script:"trend-labels" }}
+{{ trend_present|json_script:"trend-present" }}
+{{ trend_absent|json_script:"trend-absent" }}
+{{ dept_labels|json_script:"dept-labels" }}
+{{ dept_present|json_script:"dept-present" }}
+{{ dept_total|json_script:"dept-total" }}
+
+<script>
+const teams = JSON.parse(document.getElementById("teams-data").textContent);
+const presentCounts = JSON.parse(document.getElementById("present-data").textContent);
+const absentCounts = JSON.parse(document.getElementById("absent-data").textContent);
+const leaveCounts = JSON.parse(document.getElementById("leave-data").textContent);
+
+const trendLabels = JSON.parse(document.getElementById("trend-labels").textContent);
+const trendPresent = JSON.parse(document.getElementById("trend-present").textContent);
+const trendAbsent = JSON.parse(document.getElementById("trend-absent").textContent);
+
+const deptLabels = JSON.parse(document.getElementById("dept-labels").textContent);
+const deptPresent = JSON.parse(document.getElementById("dept-present").textContent);
+const deptTotal = JSON.parse(document.getElementById("dept-total").textContent);
+
+// 1. Trend Line Chart
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+new Chart(trendCtx, {
+    type: 'line',
+    data: {
+        labels: trendLabels,
+        datasets: [{
+            label: 'Present',
+            data: trendPresent,
+            borderColor: '#4361ee',
+            backgroundColor: 'rgba(67, 97, 238, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointHoverRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+// 2. Team Stacked Chart
+const ctx = document.getElementById('attendanceChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: teams,
+        datasets: [
+            { 
+                label: 'Present', 
+                data: presentCounts, 
+                backgroundColor: '#4361ee', 
+                stack: 'Stack 0',
+                borderRadius: 4
+            },
+            { 
+                label: 'Absent', 
+                data: absentCounts, 
+                backgroundColor: '#f72585', 
+                stack: 'Stack 0',
+                borderRadius: 4
+            },
+            { 
+                label: 'On Leave', 
+                data: leaveCounts, 
+                backgroundColor: '#ffd166', 
+                stack: 'Stack 0',
+                borderRadius: 4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+            x: { stacked: true, grid: { display: false } },
+            y: { stacked: true, beginAtZero: true }
+        }
+    }
+});
+
+// 3. Dept Breakdown Chart
+const deptCtx = document.getElementById('deptChart').getContext('2d');
+new Chart(deptCtx, {
+    type: 'bar',
+    data: {
+        labels: deptLabels,
+        datasets: [{
+            label: 'Present',
+            data: deptPresent,
+            backgroundColor: '#4cc9f0',
+            borderRadius: 20,
+            barThickness: 15
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+            y: { grid: { display: false } }
+        }
+    }
+});
+
+// 4. Pie Chart
+const pieLabels = JSON.parse(document.getElementById("pie-labels").textContent);
+const pieValues = JSON.parse(document.getElementById("pie-values").textContent);
+const pieCtx = document.getElementById('attendancePie').getContext('2d');
+
+new Chart(pieCtx, {
+    type: 'doughnut',
+    data: {
+        labels: pieLabels,
+        datasets: [{ 
+            data: pieValues, 
+            backgroundColor: ['#4361ee', '#f72585', '#ffd166'],
+            borderWidth: 0,
+            hoverOffset: 15
+        }]
+    },
+    options: { 
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '75%',
+        plugins: { 
+            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15 } } 
+        } 
+    }
+});
+</script>
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+<script>
+var swiper = new Swiper(".mySwiper", {
+  effect: "slide",
+  grabCursor: true,
+  centeredSlides: true,
+  slidesPerView: "auto",
+  spaceBetween: 40,
+  loop: true,
+  pagination: {
+    el: ".swiper-pagination",
+    clickable: true,
+    dynamicBullets: true,
+  },
+  navigation: {
+    nextEl: ".swiper-button-next",
+    prevEl: ".swiper-button-prev",
+  },
+  breakpoints: {
+    320: { slidesPerView: 1, spaceBetween: 20 },
+    768: { slidesPerView: "auto", spaceBetween: 40 }
+  }
+});
+</script>
+{% endblock %}

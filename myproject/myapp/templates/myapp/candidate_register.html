@@ -1,0 +1,590 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-color: #3b82f6;
+        --primary-hover: #2563eb;
+        --secondary-color: #64748b;
+        --bg-color: #f8fafc;
+        --card-bg: #ffffff;
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --input-bg: #ffffff;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+    }
+
+    .onboarding-container {
+        max-width: 1000px;
+        margin: 4rem auto;
+        padding: 0 2rem;
+    }
+
+    .form-card {
+        background: var(--card-bg);
+        border-radius: 32px;
+        padding: 4rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .form-header h1 {
+        font-weight: 800;
+        font-size: 2.5rem;
+        letter-spacing: -0.025em;
+        color: var(--text-main);
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #0f172a 0%, #3b82f6 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .form-header p {
+        color: var(--text-muted);
+        font-size: 1.125rem;
+        max-width: 500px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .form-section {
+        margin-bottom: 4rem;
+    }
+
+    .form-section-title {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .form-section-title i {
+        font-size: 1.25rem;
+    }
+
+    .form-section-title::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border-color);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+    }
+
+    .field-group.full-width {
+        grid-column: span 2;
+    }
+
+    .field-group label {
+        font-weight: 600;
+        color: #475569;
+        font-size: 0.9375rem;
+        padding-left: 2px;
+    }
+
+    .form-control {
+        padding: 0.875rem 1.125rem;
+        background: var(--input-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 14px;
+        font-size: 1rem;
+        color: var(--text-main);
+        transition: var(--transition);
+        width: 100%;
+    }
+
+    .form-control::placeholder {
+        color: #94a3b8;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+
+    .form-control:hover:not(:focus) {
+        border-color: #cbd5e1;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    /* Photo Upload Area */
+    .photo-upload-wrapper {
+        grid-column: span 2;
+        margin-top: 1rem;
+    }
+
+    .photo-upload-container {
+        background: #f8fafc;
+        border: 2px dashed #cbd5e1;
+        border-radius: 20px;
+        padding: 3rem;
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .photo-upload-container:hover {
+        border-color: var(--primary-color);
+        background: #f1f7ff;
+        transform: translateY(-2px);
+    }
+
+    .photo-upload-container.has-image {
+        border-style: solid;
+        border-color: var(--primary-color);
+        background: #ffffff;
+    }
+
+    .upload-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .upload-icon {
+        width: 64px;
+        height: 64px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        color: var(--primary-color);
+        font-size: 1.75rem;
+        transition: var(--transition);
+    }
+
+    .photo-upload-container:hover .upload-icon {
+        transform: scale(1.1);
+    }
+
+    .photo-preview-circle {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #ffffff;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        display: none;
+        margin: 0 auto 1.5rem;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 1.125rem;
+        background: var(--text-main);
+        color: white;
+        border: none;
+        border-radius: 16px;
+        font-weight: 700;
+        font-size: 1.125rem;
+        margin-top: 1rem;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .btn-submit:hover {
+        background: #1e293b;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-submit:active {
+        transform: translateY(0);
+    }
+
+    /* Success State */
+    .has-image .upload-icon,
+    .has-image .upload-text,
+    .has-image .upload-hint {
+        display: none;
+    }
+
+    .has-image .photo-preview-circle {
+        display: block;
+    }
+
+    .file-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #eff6ff;
+        color: #3b82f6;
+        padding: 0.5rem 1rem;
+        border-radius: 99px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .onboarding-container {
+            padding: 0 1rem;
+            margin: 2rem auto;
+        }
+
+        .form-card {
+            padding: 2.5rem 1.5rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .field-group.full-width {
+            grid-column: span 1;
+        }
+
+        .form-header h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<div class="onboarding-container">
+    <div class="form-card">
+        <div class="form-header">
+            <h1>Join Our Team</h1>
+            <p>Ready to start your journey? Provide your details below and we'll take care of the rest.</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" id="onboardingForm">
+            {% csrf_token %}
+
+            <!-- PERSONAL INFO -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-person-circle"></i> Personal Identity</div>
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label>Full Name</label>
+                        <input type="text" name="full_name" class="form-control" required
+                            placeholder="Full Name as per Aadhaar" value="{{ initial_data.full_name|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" class="form-control" required
+                            placeholder="professional@example.com" value="{{ initial_data.email|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>Contact Number</label>
+                        <input type="text" name="contact" class="form-control" required placeholder="+91 00000 00000"
+                            value="{{ initial_data.contact|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>Gender</label>
+                        <select name="gender" class="form-control" required>
+                            <option value="Male" {% if initial_data.gender == 'Male' %} selected {% endif %}> Male
+                            </option>
+                            <option value="Female" {% if initial_data.gender == 'Female' %} selected {% endif %}> Female
+                            </option>
+                            <option value="Other" {% if initial_data.gender == 'Other' %} selected {% endif %}> Other
+                            </option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label>Date of Birth</label>
+                        <input type="date" name="dob" class="form-control" required
+                            value="{% if initial_data.dob %}{{ initial_data.dob|date:'Y-m-d' }}{% endif %}">
+                    </div>
+                    <div class="field-group">
+                        <label>Marital Status</label>
+                        <select name="marital_status" class="form-control" required>
+                            <option value="Single" {% if initial_data.marital_status == 'Single' %} selected {% endif %}> Single</option>
+                            <option value="Married" {% if initial_data.marital_status == 'Married' %} selected {% endif %}>Married</option>
+                            <option value="Divorced" {% if initial_data.marital_status == 'Divorced' %} selected {% endif %}>Divorced</option>
+                            <option value="Widowed" {% if initial_data.marital_status == 'Widowed' %} selected {% endif %}>Widowed</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label>Father's Name</label>
+                        <input type="text" name="father_name" class="form-control" required placeholder="Full Name"
+                            value="{{ initial_data.father_name|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>Mother's Name</label>
+                        <input type="text" name="mother_name" class="form-control" required placeholder="Full Name"
+                            value="{{ initial_data.mother_name|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>Place of Birth</label>
+                        <input type="text" name="place_of_birth" class="form-control" required placeholder="City, State"
+                            value="{{ initial_data.place_of_birth|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>Blood Group</label>
+                        <input type="text" name="blood_group" class="form-control" required placeholder="e.g. B+"
+                            value="{{ initial_data.blood_group|default:'' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROFESSIONAL INFO -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-briefcase"></i> Professional Profile</div>
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label>Preferred Designation</label>
+                        <select name="designation" class="form-control" required>
+                            <option value="">-- Select Designation --</option>
+                            <option value="Medical Coder" {% if initial_data.designation == 'Medical Coder' %}selected{% endif %}>Medical Coder</option>
+                            <option value="SME" {% if initial_data.designation == 'SME' %}selected{% endif %}>SME</option>
+                            <option value="TL" {% if initial_data.designation == 'TL' %}selected{% endif %}>TL</option>
+                            <option value="AM" {% if initial_data.designation == 'AM' %}selected{% endif %}>AM</option>
+                            <option value="IT" {% if initial_data.designation == 'IT' %}selected{% endif %}>IT</option>
+                            <option value="Data Analyst" {% if initial_data.designation == 'Data Analyst' %}selected{% endif %}>Data Analyst</option>
+                            <option value="Manager" {% if initial_data.designation == 'Manager' %}selected{% endif %}> Manager</option>
+                            <option value="VP" {% if initial_data.designation == 'VP' %}selected{% endif %}>VP</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label>Highest Qualification</label>
+                        <input type="text" name="qualification" class="form-control" required
+                            placeholder="Degree / Specialization" value="{{ initial_data.qualification|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>Total Experience</label>
+                        <input type="text" name="total_experience" class="form-control" placeholder="e.g. 3.5 Years"
+                            value="{{ initial_data.total_experience|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>Previous Organization</label>
+                        <input type="text" name="prev_org" class="form-control" placeholder="Last Company Name"
+                            value="{{ initial_data.prev_org|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>AAPC Certification</label>
+                        <select name="aapc_cert" class="form-control">
+                            <option value="No" {% if initial_data.aapc_cert == 'No' %}selected{% endif %}>No</option>
+                            <option value="Yes" {% if initial_data.aapc_cert == 'Yes' %}selected{% endif %}>Yes</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label>Credential Number</label>
+                        <input type="text" name="credential_no" class="form-control" placeholder="If applicable"
+                            value="{{ initial_data.credential_no|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>Date of Joining (Planned)</label>
+                        <input type="date" name="doj" class="form-control"
+                            value="{% if initial_data.doj %}{{ initial_data.doj|date:'Y-m-d' }}{% endif %}">
+                    </div>
+                    <div class="field-group">
+                        <label>Emergency Contact No</label>
+                        <input type="text" name="emergency_contact" class="form-control"
+                            placeholder="Relationship - Number" value="{{ initial_data.emergency_contact|default:'' }}">
+                    </div>
+                </div>
+            </div>
+            <!-- DOCUMENTATION 
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-file-earmark-lock"></i> Identification Details</div>
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label>Aadhaar Number</label>
+                        <input type="text" name="aadhaar" class="form-control" placeholder="0000 0000 0000"
+                            value="{{ initial_data.aadhaar|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>PAN Number</label>
+                        <input type="text" name="pan_number" class="form-control" placeholder="Permanent Account Number"
+                            value="{{ initial_data.pan_number|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>UAN Number</label>
+                        <input type="text" name="uan_number" class="form-control" placeholder="Universal Account Number"
+                            value="{{ initial_data.uan_number|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                    </div>
+                    <div class="field-group full-width">
+                        <label>Background Verification (BGV) Details</label>
+                        <textarea name="bgv_details" class="form-control" placeholder="Briefly mention past employment verification details if any">{{ initial_data.bgv_details|default:'' }}</textarea>
+                    </div>
+                </div>
+            </div>
+            -->
+            <!-- CONTACT -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-geo-alt"></i> Address Information</div>
+                <div class="form-grid">
+                    <div class="field-group full-width">
+                        <label>Residential Address</label>
+                        <textarea name="residential_address" class="form-control" rows="3"
+                            placeholder="Current address details">{{ initial_data.residential_address|default:'' }}</textarea>
+                    </div>
+                    <div class="field-group full-width">
+                        <label>Permanent Address</label>
+                        <textarea name="permanent_address" class="form-control" rows="3"
+                            placeholder="Permanent address as per records">{{ initial_data.permanent_address|default:'' }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BANKING 
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-bank"></i> Banking Information</div>
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label>Bank Name</label>
+                        <input type="text" name="bank_name" class="form-control" placeholder="Full Bank Name"
+                            value="{{ initial_data.bank_name|default:'' }}">
+                    </div>
+                    <div class="field-group">
+                        <label>Account Number</label>
+                        <input type="text" name="account_number" class="form-control" placeholder="Account Number"
+                            value="{{ initial_data.account_number|default:'' }}">
+                    </div>
+                    <div class="field-group full-width">
+                        <label>IFSC Code</label>
+                        <input type="text" name="ifsc" class="form-control" placeholder="Bank IFSC Code"
+                            value="{{ initial_data.ifsc|default:'' }}">
+                    </div>
+                </div>
+            </div>
+            -->
+            <!-- MEDIA -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-camera"></i> Profile Identification</div>
+                <div class="photo-upload-wrapper">
+                    <div class="photo-upload-container {% if existing_photo %}has-image{% endif %}" id="uploadContainer"
+                        onclick="document.getElementById('photoInput').click()">
+                        <img id="photoPreview"
+                            src="{% if existing_photo %}data:image/jpeg;base64,{{ existing_photo }}{% endif %}"
+                            class="photo-preview-circle">
+
+                        <div class="upload-content">
+                            <div class="upload-icon">
+                                <i class="bi bi-cloud-arrow-up-fill"></i>
+                            </div>
+                            <span class="upload-text"
+                                style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">Upload Profile Photo</span>
+                            <p class="upload-hint" style="color: #64748b; font-size: 0.9rem; margin: 0;">Support JPG,
+                                PNG. Max size 2MB.</p>
+                        </div>
+
+                        <input type="file" name="photo" id="photoInput" style="display: none;" accept="image/*">
+                        <div id="fileNameWrapper"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                Submit Registration <i class="bi bi-arrow-right-circle-fill"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const photoInput = document.getElementById('photoInput');
+    const uploadContainer = document.getElementById('uploadContainer');
+    const photoPreview = document.getElementById('photoPreview');
+    const fileNameWrapper = document.getElementById('fileNameWrapper');
+
+    photoInput.addEventListener('change', function (e) {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                photoPreview.src = e.target.result;
+                photoPreview.style.display = 'block';
+                uploadContainer.classList.add('has-image');
+            }
+            reader.readAsDataURL(this.files[0]);
+
+            fileNameWrapper.innerHTML = `
+                <div class="file-pill">
+                    <i class="bi bi-file-earmark-image"></i>
+                    ${this.files[0].name}
+                </div>
+            `;
+        }
+    });
+
+    // Drag and drop support
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadContainer.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadContainer.addEventListener(eventName, () => uploadContainer.style.borderColor = '#3b82f6', false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadContainer.addEventListener(eventName, () => uploadContainer.style.borderColor = '#cbd5e1', false);
+    });
+
+    uploadContainer.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        let dt = e.dataTransfer;
+        let files = dt.files;
+        photoInput.files = files;
+
+        // Trigger change manually
+        const event = new Event('change');
+        photoInput.dispatchEvent(event);
+    }
+</script>
+{% endblock %}

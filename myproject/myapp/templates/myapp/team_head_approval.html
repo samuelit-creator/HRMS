@@ -1,0 +1,155 @@
+{% extends "myapp/base.html" %}
+{% block content %}
+
+<style>
+    /* ===== BASE ===== */
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: #f4f7fb;
+    }
+
+    .page-wrapper {
+        max-width: 1200px;
+        margin: auto;
+        padding: 30px;
+    }
+
+    /* ===== CARD ===== */
+    .card {
+        background: #ffffff;
+        border-radius: 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        padding: 25px;
+    }
+
+    /* ===== HEADER ===== */
+    .card h2 {
+        margin-bottom: 20px;
+        color: #1f2937;
+    }
+
+    /* ===== TABLE ===== */
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    thead {
+        background: #f1f5f9;
+    }
+
+    th,
+    td {
+        padding: 12px 14px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+        font-size: 13px;
+        text-transform: uppercase;
+        color: #475569;
+    }
+
+    tbody tr:hover {
+        background: #f9fafb;
+    }
+
+    /* ===== ACTION BUTTONS ===== */
+    .btn {
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: 0.3s;
+    }
+
+    .btn-approve {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .btn-approve:hover {
+        background: #bbf7d0;
+    }
+
+    .btn-reject {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .btn-reject:hover {
+        background: #fecaca;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty {
+        text-align: center;
+        padding: 40px;
+        color: #6b7280;
+        font-size: 15px;
+    }
+</style>
+
+<div class="page-wrapper">
+    <div class="card">
+        <h2>Team Head Approval – Manual Punches</h2>
+
+        {% if punches %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Employee Code</th>
+                        <th>Employee Name</th>
+                        <th>Punch Date</th>
+                        <th>Punch Time</th>
+                        <th>Punch Type</th>
+                        <th>Remarks</th>
+                        <th style="text-align:center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in punches %}
+                    <tr>
+                        <td>{{ p.id }}</td>
+                        <td>{{ p.emp_code }}</td>
+                        <td>{{ p.emp_name }}</td>
+                        <td>{{ p.date }}</td>
+                        <td>{{ p.time }}</td>
+                        <td>{{ p.type }}</td>
+                        <td>{{ p.remarks }}</td>
+                        <td style="text-align:center;">
+                            <a href="{% url 'approve_manual_punch' p.id %}" class="btn btn-approve"
+                                onclick="return confirm('Approve this manual punch?');">
+                                Approve
+                            </a>
+
+                            <a href="{% url 'reject_manual_punch' p.id %}" class="btn btn-reject"
+                                onclick="return confirm('Reject this manual punch?');">
+                                Reject
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty">
+            ✅ No pending manual punch approvals
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

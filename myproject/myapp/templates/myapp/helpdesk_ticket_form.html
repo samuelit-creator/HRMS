@@ -1,0 +1,257 @@
+{% extends "myapp/base.html" %}
+{% block title %}Raise Support Ticket{% endblock %}
+{% block page_title %}Raise Support Ticket{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <!-- Breadcrumb / Back Navigation -->
+            <nav aria-label="breadcrumb" class="mb-4 animate-fade-in">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'helpdesk_ticket_list' %}" class="text-decoration-none text-secondary small fw-600">Helpdesk</a></li>
+                    <li class="breadcrumb-item active small fw-600" aria-current="page">New Ticket</li>
+                </ol>
+            </nav>
+
+            <div class="glass-card overflow-hidden animate-slide-up">
+                <div class="card-header-premium p-4 border-bottom">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-box-primary">
+                            <i class="bi bi-patch-question"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 fw-800 text-dark">Raise Support Ticket</h4>
+                            <p class="text-muted small mb-0 opacity-75">Describe your issue and our specialist team will assist you.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 p-lg-5">
+                    <form method="post" class="needs-validation">
+                        {% csrf_token %}
+                        <div class="row g-4">
+                            <!-- Category & Priority Group -->
+                            <div class="col-md-6">
+                                <div class="form-group-modern">
+                                    <label class="form-label-premium">Support Category</label>
+                                    <div class="input-group-premium">
+                                        <span class="input-icon"><i class="bi bi-tag"></i></span>
+                                        <select name="category" class="form-select-premium" required>
+                                            <option value="" disabled selected>Select Category</option>
+                                            {% for cat in categories %}
+                                            <option value="{{ cat }}">{{ cat }} Support</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-text-premium text-muted x-small mt-1">Which department should handle this?</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group-modern">
+                                    <label class="form-label-premium">Issue Priority</label>
+                                    <div class="input-group-premium">
+                                        <span class="input-icon"><i class="bi bi-lightning-charge"></i></span>
+                                        <select name="priority" class="form-select-premium" required>
+                                            {% for prio in priorities %}
+                                            <option value="{{ prio }}" {% if prio == 'Medium' %}selected{% endif %}>{{ prio }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-text-premium text-muted x-small mt-1">Impact level of your request.</div>
+                                </div>
+                            </div>
+
+                            <!-- Subject -->
+                            <div class="col-12">
+                                <div class="form-group-modern">
+                                    <label class="form-label-premium">Subject</label>
+                                    <div class="input-group-premium">
+                                        <span class="input-icon"><i class="bi bi-chat-left-text"></i></span>
+                                        <input type="text" name="subject" class="form-control-premium" placeholder="Brief summary of the issue..." required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                <div class="form-group-modern">
+                                    <label class="form-label-premium">Detailed Description</label>
+                                    <textarea name="description" class="form-control-premium text-area-premium" rows="6" placeholder="Provide as much detail as possible to help us resolve it quickly..." required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="mt-5 pt-4 border-top d-flex flex-column flex-sm-row gap-3">
+                            <button type="submit" class="btn btn-primary-glass flex-grow-1 py-3">
+                                <i class="bi bi-send-fill me-2"></i>Send Request
+                            </button>
+                            <a href="{% url 'helpdesk_ticket_list' %}" class="btn btn-secondary-glass px-4 py-3">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Guidelines / Help Card -->
+            <div class="mt-4 animate-slide-up" style="animation-delay: 0.1s;">
+                <div class="glass-card-info p-3 d-flex align-items-start gap-3 border-0">
+                    <i class="bi bi-info-circle-fill text-primary"></i>
+                    <p class="x-small text-muted mb-0 lh-base">
+                        <strong>Tip:</strong> Include any error codes or steps to reproduce the issue in the description. 
+                        Response times are governed by our standard SLA based on the selected priority.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #4F46E5;
+        --primary-light: #818CF8;
+        --secondary: #64748B;
+        --glass: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.3);
+        --input-bg: rgba(248, 250, 252, 0.7);
+    }
+
+    body {
+        background: #f8fafc;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .fw-800 { font-weight: 800; }
+    .fw-600 { font-weight: 600; }
+    .ls-1 { letter-spacing: 0.05em; }
+    .x-small { font-size: 0.7rem; }
+
+    .glass-card {
+        background: var(--glass);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+    }
+
+    .glass-card-info {
+        background: rgba(79, 70, 229, 0.05);
+        border-radius: 16px;
+    }
+
+    .card-header-premium {
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    .icon-box-primary {
+        width: 48px;
+        height: 48px;
+        background: var(--primary);
+        color: white;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        box-shadow: 0 8px 16px rgba(79, 70, 229, 0.2);
+    }
+
+    .form-label-premium {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .input-group-premium {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 16px;
+        color: var(--secondary);
+        opacity: 0.6;
+        pointer-events: none;
+        z-index: 5;
+    }
+
+    .form-control-premium, .form-select-premium {
+        width: 100%;
+        padding: 12px 16px 12px 46px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        background: var(--input-bg);
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #1e293b;
+        transition: all 0.3s ease;
+    }
+
+    .text-area-premium {
+        padding-left: 16px !important;
+    }
+
+    .form-control-premium:focus, .form-select-premium:focus {
+        background: white;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        outline: none;
+    }
+
+    .btn-primary-glass {
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+    }
+    .btn-primary-glass:hover {
+        background: var(--primary-light);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-secondary-glass {
+        background: white;
+        color: var(--secondary);
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-secondary-glass:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+    }
+
+    /* Animations */
+    .animate-fade-in {
+        animation: fadeIn 0.8s ease-out forwards;
+    }
+    .animate-slide-up {
+        animation: slideUp 0.8s ease-out forwards;
+        opacity: 0;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}

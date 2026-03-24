@@ -1,0 +1,325 @@
+{% extends "myapp/base.html" %}
+{% block title %}Security Showcase - Role-based Access{% endblock %}
+{% block page_title %}Security Architecture{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper py-4 py-lg-5 px-3 px-lg-5">
+    <!-- Header Section -->
+    <div class="row mb-5 align-items-center animate-fade-in">
+        <div class="col-lg-8">
+            <h1 class="display-5 fw-900 text-dark mb-2">Security <span class="text-primary-gradient">Showcase</span></h1>
+            <p class="text-secondary fw-500 mb-0">
+                <i class="bi bi-shield-lock-fill me-2 text-primary"></i> 
+                Demonstrating Role-Based Access Control (RBAC) via <code>AllocatePosition</code>
+            </p>
+        </div>
+        <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+            <div class="active-identity-card">
+                <div class="identity-icon">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <div class="identity-info text-start">
+                    <span class="label">Current Identity</span>
+                    <h5 class="name">{{ emp_name }}</h5>
+                    <span class="role-badge {% if is_super_admin %}bg-admin{% elif is_internal %}bg-internal{% else %}bg-external{% endif %}">
+                        {{ current_role|upper }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Matrix -->
+    <div class="row g-4 mb-5 animate-slide-up">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="section-icon me-3"><i class="bi bi-grid-3x3-gap-fill text-primary"></i></div>
+                    <h4 class="fw-800 mb-0">Capabilities Matrix</h4>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover-premium align-middle">
+                        <thead>
+                            <tr>
+                                <th>Functional Area</th>
+                                <th>Feature Set</th>
+                                <th>Access Level</th>
+                                <th>Security Logic</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for feature in security_features %}
+                            <tr>
+                                <td><span class="fw-700 text-dark">{{ feature.feature }}</span></td>
+                                <td><span class="text-secondary small">Standard Production Module</span></td>
+                                <td>
+                                    <span class="access-pill pill-{{ feature.access|lower }}">
+                                        {{ feature.access }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <code>{% if is_super_admin %}role in AdminPool{% elif is_internal %}emp_code is active{% else %}guest_access{% endif %}</code>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Based Views -->
+    <div class="row g-4 animate-slide-up" style="animation-delay: 0.1s;">
+        <!-- Super Admin Section -->
+        <div class="col-lg-4">
+            <div class="role-perspective-card {% if is_super_admin %}active{% else %}locked{% endif %}">
+                <div class="card-header-premium">
+                    <i class="bi bi-cpu-fill"></i>
+                    <span>Super Admin View</span>
+                </div>
+                <div class="card-body-premium">
+                    {% if is_super_admin %}
+                    <div class="alert alert-admin small mb-3">
+                        <i class="bi bi-check-circle-fill me-2"></i> Elevate access granted.
+                    </div>
+                    <p class="small text-secondary">You have full visibility across all departments and can manage system configurations.</p>
+                    <ul class="feature-list">
+                        <li><i class="bi bi-check2"></i> Master Data Upload</li>
+                        <li><i class="bi bi-check2"></i> Leave Policy Override</li>
+                        <li><i class="bi bi-check2"></i> User Audit Logs</li>
+                    </ul>
+                    {% else %}
+                    <div class="locked-overlay">
+                        <i class="bi bi-lock-fill display-6 mb-3"></i>
+                        <p class="fw-700">Restricted Access</p>
+                        <span class="small opacity-75">Admin rights required</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Internal User Section -->
+        <div class="col-lg-4">
+            <div class="role-perspective-card {% if is_internal %}active{% else %}locked{% endif %}">
+                <div class="card-header-premium">
+                    <i class="bi bi-person-workspace"></i>
+                    <span>Internal Portal</span>
+                </div>
+                <div class="card-body-premium">
+                    {% if is_internal %}
+                    <div class="alert alert-internal small mb-3">
+                        <i class="bi bi-info-circle-fill me-2"></i> Employee context active.
+                    </div>
+                    <p class="small text-secondary">Standard internal user permissions. Focused on self-service and team collaboration.</p>
+                    <ul class="feature-list">
+                        <li><i class="bi bi-check2"></i> Personal Attendance</li>
+                        <li><i class="bi bi-check2"></i> Kudos Participation</li>
+                        <li><i class="bi bi-check2"></i> Expense Claims</li>
+                    </ul>
+                    {% else %}
+                    <div class="locked-overlay">
+                        <i class="bi bi-shield-exclamation display-6 mb-3"></i>
+                        <p class="fw-700">Employee Login Required</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- External User Section -->
+        <div class="col-lg-4">
+            <div class="role-perspective-card {% if is_external %}active{% else %}locked{% endif %}">
+                <div class="card-header-premium">
+                    <i class="bi bi-globe"></i>
+                    <span>External Access</span>
+                </div>
+                <div class="card-body-premium">
+                    {% if is_external %}
+                    <div class="alert alert-external small mb-3">
+                        <i class="bi bi-broadcast me-2"></i> Public mode enabled.
+                    </div>
+                    <p class="small text-secondary">Restricted view for onboarding candidates and guest entities.</p>
+                    <ul class="feature-list">
+                        <li><i class="bi bi-check2"></i> Registration Portal</li>
+                        <li><i class="bi bi-check2"></i> Company Overview</li>
+                        <li><i class="bi bi-check2"></i> Public Announcement</li>
+                    </ul>
+                    {% else %}
+                    <div class="locked-overlay">
+                        <i class="bi bi-eye-slash-fill display-6 mb-3"></i>
+                        <p class="fw-700">Internal Filter Active</p>
+                        <span class="small opacity-75">External features hidden for staff</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+
+    :root {
+        --primary: #4F46E5;
+        --secondary: #64748B;
+        --admin-color: #7C3AED;
+        --internal-color: #10B981;
+        --external-color: #F59E0B;
+        --glass: rgba(255, 255, 255, 0.9);
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #f8fafc;
+    }
+
+    code {
+        font-family: 'JetBrains Mono', monospace;
+        background: #f1f5f9;
+        color: var(--primary);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.85em;
+    }
+
+    .fw-900 { font-weight: 900; }
+    .fw-800 { font-weight: 800; }
+    .text-primary-gradient {
+        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Identity Card */
+    .active-identity-card {
+        background: white;
+        padding: 16px 20px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        border: 1px solid #f1f5f9;
+    }
+    .identity-icon {
+        width: 48px;
+        height: 48px;
+        background: #eff6ff;
+        color: var(--primary);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+    }
+    .identity-info .label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--secondary); display: block; }
+    .identity-info .name { margin: 2px 0; font-weight: 800; font-size: 1rem; color: #1e293b; }
+    
+    .role-badge {
+        font-size: 0.65rem;
+        font-weight: 900;
+        padding: 3px 10px;
+        border-radius: 100px;
+        color: white;
+    }
+    .bg-admin { background: var(--admin-color); }
+    .bg-internal { background: var(--internal-color); }
+    .bg-external { background: var(--external-color); }
+
+    /* Glass Card */
+    .glass-card {
+        background: var(--glass);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    }
+
+    /* Pills */
+    .access-pill {
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+    .pill-full { background: #fee2e2; color: #991b1b; }
+    .pill-self { background: #dcfce7; color: #166534; }
+    .pill-request { background: #e0e7ff; color: #3730a3; }
+    .pill-any { background: #fef3c7; color: #92400e; }
+    .pill-own { background: #f3f4f6; color: #374151; }
+    .pill-enabled { background: #ecfdf5; color: #065f46; }
+    .pill-none { background: #f9fafb; color: #9ca3af; opacity: 0.6; }
+
+    /* Perspective Cards */
+    .role-perspective-card {
+        background: white;
+        border-radius: 24px;
+        height: 320px;
+        overflow: hidden;
+        position: relative;
+        border: 2px solid #f1f5f9;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .role-perspective-card.active {
+        border-color: var(--primary);
+        box-shadow: 0 20px 40px rgba(79, 70, 229, 0.1);
+    }
+    .role-perspective-card.locked {
+        opacity: 0.7;
+    }
+
+    .card-header-premium {
+        background: #f8fafc;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 800;
+        color: #1e293b;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .card-header-premium i { font-size: 1.2rem; color: var(--primary); }
+    
+    .card-body-premium { padding: 24px; }
+    
+    .feature-list { list-style: none; padding: 0; margin-top: 20px; }
+    .feature-list li {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .feature-list li i { color: var(--internal-color); font-weight: 900; }
+
+    .locked-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,0.8);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        padding: 40px;
+        text-align: center;
+        backdrop-filter: blur(4px);
+    }
+
+    .alert-admin { background: #f5f3ff; color: #5b21b6; border: none; }
+    .alert-internal { background: #ecfdf5; color: #065f46; border: none; }
+    .alert-external { background: #fffbeb; color: #92400e; border: none; }
+
+    /* Animations */
+    .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+    .animate-slide-up { animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+{% endblock %}
